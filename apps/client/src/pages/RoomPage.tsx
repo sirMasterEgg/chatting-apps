@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Dialog } from '@/components/ui/Dialog';
 import { Icon } from '@/components/ui/Icon';
 import { IconButton } from '@/components/ui/IconButton';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { Toast } from '@/components/ui/Toast';
 import { ConnectionBanner } from '@/components/chat/ConnectionBanner';
 import { Lightbox } from '@/components/chat/Lightbox';
@@ -45,10 +46,43 @@ function RoomPageInner() {
   const [lightbox, setLightbox] = useState<{ src: string; name: string } | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState(false);
+  const [isMouseOutsideColumn, setIsMouseOutsideColumn] = useState(false);
   const messageInputRef = useRef<MessageInputHandle>(null);
+  const roomShellRef = useRef<HTMLDivElement>(null);
+  const wasInsideColumnRef = useRef(true);
 
   const latestMessageId = messages.length > 0 ? messages[messages.length - 1].id : null;
   useUnreadTitle(latestMessageId);
+
+  // Show a full-screen loading takeover the moment the cursor crosses out of
+  // the centered 50%-width room column into the side margins, and dismiss it
+  // as soon as the cursor comes back over the column (or the overlay is
+  // clicked). Tracked via raw cursor coordinates against the column's
+  // bounding rect rather than mouseenter/leave on the column element itself,
+  // since once the overlay is showing it sits on top of that element and
+  // would otherwise swallow the very re-entry event meant to dismiss it.
+  // Below the `md` breakpoint the column is full-width (no margins to leave
+  // into), so this naturally never triggers on mobile.
+  useEffect(() => {
+    function handleMouseMove(event: MouseEvent) {
+      const rect = roomShellRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const isInsideNow = event.clientX >= rect.left && event.clientX <= rect.right;
+
+      if (isInsideNow) {
+        setIsMouseOutsideColumn(false);
+      } else if (wasInsideColumnRef.current) {
+        // Only fire on the inside -> outside transition, so dismissing via
+        // click while still physically outside doesn't immediately flip
+        // it back on at the next mousemove.
+        setIsMouseOutsideColumn(true);
+      }
+      wasInsideColumnRef.current = isInsideNow;
+    }
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   const handleCopyRoomId = useCallback(() => {
     if (!session) return;
@@ -84,7 +118,10 @@ function RoomPageInner() {
       {/* Room shell: full width on mobile, pinned to a centered 50%-width
           column from the md breakpoint up — a narrower reading column reads
           better than an edge-to-edge chat on wide desktop viewports. */}
-      <div className="mx-auto flex min-h-0 w-full flex-1 flex-col md:w-1/2 md:min-w-[420px] md:border-x md:border-hairline">
+      <div
+        ref={roomShellRef}
+        className="mx-auto flex min-h-0 w-full flex-1 flex-col md:w-1/2 md:min-w-[420px] md:border-x md:border-hairline"
+      >
         {/* sub-nav-frosted: parchment @ ~80% + blur, category name left,
             primary action right — Apple's product-page sub-nav pattern. */}
         <header className="flex flex-none items-center justify-between gap-3 border-b border-hairline bg-parchment/80 px-4 py-3 backdrop-blur-md">
@@ -197,6 +234,10 @@ function RoomPageInner() {
         <Dialog title="Couldn't reconnect" actions={<Button onClick={handleBackToLanding}>Back to Landing</Button>}>
           Your session couldn't be restored automatically (e.g. the username is already taken by a stale session). Please go back to the landing page and join again.
         </Dialog>
+      )}
+
+      {isMouseOutsideColumn && (
+        <LoadingScreen autoDismissMs={0} onDismiss={() => setIsMouseOutsideColumn(false)} />
       )}
     </div>
   );
