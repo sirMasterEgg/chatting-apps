@@ -16,33 +16,33 @@ export function AttachmentPreview({ draft, sendPhase, onCancel }: AttachmentPrev
   const isReading = draft.dataUrl === null;
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-2">
+    <div className="flex items-center gap-3 rounded-[14px] border border-hairline bg-canvas px-3 py-2">
       {draft.kind === 'image' && draft.previewUrl ? (
-        <img src={draft.previewUrl} alt="" className="h-12 w-12 flex-none rounded-md object-cover" />
+        <img src={draft.previewUrl} alt="" className="h-12 w-12 flex-none rounded-[8px] object-cover" />
       ) : (
-        <div className="flex h-12 w-12 flex-none items-center justify-center rounded-md bg-slate-700 text-slate-300">
+        <div className="flex h-12 w-12 flex-none items-center justify-center rounded-[8px] bg-parchment text-ink-muted-48">
           <Icon name="file" className="h-5 w-5" />
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm text-slate-100">{draft.name}</p>
-        <p className="text-xs text-slate-400">{formatBytes(draft.size)}</p>
+        <p className="truncate font-sans text-sm text-ink">{draft.name}</p>
+        <p className="text-xs text-ink-muted-48">{formatBytes(draft.size)}</p>
         {sendPhase === 'sending' ? (
-          <div className="mt-1 flex items-center gap-1.5 text-xs text-sky-400">
+          <div className="mt-1 flex items-center gap-1.5 text-xs text-primary">
             <Spinner className="h-3 w-3" />
-            <span>Mengirim...</span>
+            <span>Sending...</span>
           </div>
         ) : isReading ? (
-          <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-slate-700">
+          <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-parchment">
             <div
-              className="h-full bg-sky-500 transition-all"
+              className="h-full bg-primary transition-all"
               style={{ width: `${draft.readProgress}%` }}
             />
           </div>
         ) : null}
       </div>
       {!isBusy && (
-        <IconButton label="Batalkan lampiran" onClick={onCancel}>
+        <IconButton label="Cancel attachment" onClick={onCancel} className="h-8 w-8">
           <Icon name="x" className="h-4 w-4" />
         </IconButton>
       )}

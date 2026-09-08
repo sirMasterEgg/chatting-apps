@@ -30,7 +30,7 @@ export function runLeaveFlow(io: AppServer, socket: AppSocket): void {
     roomId,
     kind: 'system',
     author: null,
-    text: `${user.username} meninggalkan room`,
+    text: `${user.username} left the room`,
     sentAt: Date.now(),
   };
   io.to(roomId).emit('message:new', systemMessage);

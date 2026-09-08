@@ -13,7 +13,7 @@ export function startJoinIdleTimer(socket: AppSocket): void {
     timers.delete(socket.id);
     socket.emit('room:error', {
       code: 'JOIN_TIMEOUT',
-      message: 'Tidak bergabung ke room dalam waktu yang ditentukan, koneksi diputus.',
+      message: 'Did not join a room within the allotted time; disconnecting.',
     });
     socket.disconnect(true);
   }, JOIN_IDLE_TIMEOUT_MS);

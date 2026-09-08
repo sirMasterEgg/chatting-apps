@@ -62,7 +62,7 @@ export const MessageInput = forwardRef<MessageInputHandle, MessageInputProps>(fu
     const hasAttachment = !!draft;
     if (!trimmed && !hasAttachment) return;
     if (draft && !draft.dataUrl) {
-      setSendError('Tunggu file selesai dibaca sebelum mengirim.');
+      setSendError('Wait for the file to finish reading before sending.');
       return;
     }
 
@@ -88,7 +88,7 @@ export const MessageInput = forwardRef<MessageInputHandle, MessageInputProps>(fu
         clearAttachment();
       }
     } catch (err) {
-      setSendError(err instanceof Error ? err.message : 'Pesan gagal terkirim.');
+      setSendError(err instanceof Error ? err.message : 'Message failed to send.');
     } finally {
       setSendPhase(null);
     }
@@ -120,7 +120,7 @@ export const MessageInput = forwardRef<MessageInputHandle, MessageInputProps>(fu
   const displayedError = sendError ?? attachError;
 
   return (
-    <div className="flex-none border-t border-slate-800 bg-slate-900/60 px-3 py-3 sm:px-4">
+    <div className="flex-none border-t border-hairline bg-canvas px-3 py-3 sm:px-4">
       {draft && (
         <div className="mb-2">
           <AttachmentPreview draft={draft} sendPhase={sendPhase} onCancel={clearAttachment} />
@@ -128,7 +128,7 @@ export const MessageInput = forwardRef<MessageInputHandle, MessageInputProps>(fu
       )}
 
       {displayedError && (
-        <p role="alert" className="mb-2 text-xs text-rose-400">
+        <p role="alert" className="mb-2 text-xs text-ink-muted-80">
           {displayedError}
         </p>
       )}
@@ -143,7 +143,7 @@ export const MessageInput = forwardRef<MessageInputHandle, MessageInputProps>(fu
           tabIndex={-1}
         />
         <IconButton
-          label="Lampirkan file"
+          label="Attach file"
           disabled={disabled}
           onClick={() => fileInputRef.current?.click()}
           className="mb-0.5"
@@ -161,9 +161,9 @@ export const MessageInput = forwardRef<MessageInputHandle, MessageInputProps>(fu
           disabled={disabled}
           maxLength={MAX_TEXT_LENGTH}
           rows={1}
-          placeholder={disabled ? 'Menunggu koneksi...' : 'Tulis pesan... (Enter untuk kirim)'}
-          aria-label="Tulis pesan"
-          className="max-h-32 min-h-[2.5rem] flex-1 resize-none rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400 disabled:opacity-60"
+          placeholder={disabled ? 'Waiting for connection...' : 'Write a message... (Enter to send)'}
+          aria-label="Write a message"
+          className="max-h-32 min-h-11 flex-1 resize-none rounded-[20px] border border-hairline bg-canvas px-4 py-2.5 font-sans text-[15px] text-ink placeholder:text-ink-muted-48 focus-visible:border-primary focus-visible:outline-none disabled:opacity-50"
         />
 
         <Button
@@ -171,10 +171,10 @@ export const MessageInput = forwardRef<MessageInputHandle, MessageInputProps>(fu
           onClick={() => void handleSend()}
           disabled={disabled || (!text.trim() && !draft) || sendPhase !== null}
           className="mb-0.5 flex-none"
-          aria-label="Kirim pesan"
+          aria-label="Send message"
         >
           <Icon name="send" className="h-4 w-4" />
-          <span className="hidden sm:inline">Kirim</span>
+          <span className="hidden sm:inline">Send</span>
         </Button>
       </div>
     </div>

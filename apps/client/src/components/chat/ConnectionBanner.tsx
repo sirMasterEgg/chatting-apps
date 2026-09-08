@@ -2,9 +2,9 @@ import { Spinner } from '@/components/ui/Spinner';
 import type { ConnectionStatus } from '@/types/chat';
 
 const COPY: Partial<Record<ConnectionStatus, string>> = {
-  connecting: 'Menghubungkan...',
-  reconnecting: 'Menghubungkan ulang...',
-  offline: 'Koneksi terputus.',
+  connecting: 'Connecting...',
+  reconnecting: 'Reconnecting...',
+  offline: 'Connection lost.',
 };
 
 export function ConnectionBanner({ status }: { status: ConnectionStatus }) {
@@ -13,7 +13,7 @@ export function ConnectionBanner({ status }: { status: ConnectionStatus }) {
   return (
     <div
       role="status"
-      className="flex flex-none items-center justify-center gap-2 border-b border-amber-900/50 bg-amber-950/60 px-4 py-1.5 text-xs font-medium text-amber-200"
+      className="flex flex-none items-center justify-center gap-2 border-b border-hairline bg-ink px-4 py-1.5 text-xs text-white"
     >
       <Spinner className="h-3.5 w-3.5" />
       <span>{message}</span>
