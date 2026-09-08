@@ -21,19 +21,19 @@ export function Dialog({ title, children, actions, onClose }: DialogProps) {
   }, [onClose]);
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div
         ref={panelRef}
         tabIndex={-1}
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="dialog-title"
-        className="w-full max-w-sm rounded-[24px] border border-ink bg-canvas-alt p-6 focus:outline-none"
+        className="w-full max-w-sm rounded-[18px] border border-hairline bg-canvas p-6 focus:outline-none"
       >
-        <h2 id="dialog-title" className="font-sans text-lg font-bold text-ink">
+        <h2 id="dialog-title" className="font-display text-lg font-semibold tracking-[-0.374px] text-ink">
           {title}
         </h2>
-        <div className="mt-2 font-sans text-sm text-muted">{children}</div>
+        <div className="mt-2 font-sans text-sm leading-relaxed text-ink-muted-80">{children}</div>
         <div className="mt-6 flex justify-end gap-2">{actions}</div>
       </div>
     </div>,

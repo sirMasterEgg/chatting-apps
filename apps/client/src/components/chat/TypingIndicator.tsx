@@ -12,16 +12,13 @@ function typingText(usernames: string[]): string {
 /** Fixed-height row so its appearance/disappearance never shifts the layout. */
 export function TypingIndicator({ usernames }: TypingIndicatorProps) {
   return (
-    <div
-      className="flex h-6 flex-none items-center px-4 font-mono text-[10px] uppercase tracking-[1.5px] text-muted"
-      aria-live="polite"
-    >
+    <div className="flex h-6 flex-none items-center px-4 text-xs text-ink-muted-48" aria-live="polite">
       {usernames.length > 0 && (
         <span className="flex items-center gap-1.5">
           <span className="flex gap-0.5">
-            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-mint [animation-delay:-0.3s]" />
-            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-mint [animation-delay:-0.15s]" />
-            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-mint" />
+            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
+            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
+            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" />
           </span>
           {typingText(usernames)}
         </span>

@@ -120,7 +120,7 @@ export const MessageInput = forwardRef<MessageInputHandle, MessageInputProps>(fu
   const displayedError = sendError ?? attachError;
 
   return (
-    <div className="flex-none border-t border-frame bg-canvas px-3 py-3 sm:px-4">
+    <div className="flex-none border-t border-hairline bg-canvas px-3 py-3 sm:px-4">
       {draft && (
         <div className="mb-2">
           <AttachmentPreview draft={draft} sendPhase={sendPhase} onCancel={clearAttachment} />
@@ -128,7 +128,7 @@ export const MessageInput = forwardRef<MessageInputHandle, MessageInputProps>(fu
       )}
 
       {displayedError && (
-        <p role="alert" className="mb-2 font-mono text-[11px] uppercase tracking-[1px] text-ultraviolet">
+        <p role="alert" className="mb-2 text-xs text-ink-muted-80">
           {displayedError}
         </p>
       )}
@@ -163,7 +163,7 @@ export const MessageInput = forwardRef<MessageInputHandle, MessageInputProps>(fu
           rows={1}
           placeholder={disabled ? 'Menunggu koneksi...' : 'Tulis pesan... (Enter untuk kirim)'}
           aria-label="Tulis pesan"
-          className="max-h-32 min-h-[2.5rem] flex-1 resize-none rounded-[2px] border border-ink/25 bg-canvas-alt px-3 py-2 font-sans text-sm text-ink placeholder:text-muted focus-visible:border-mint-text focus-visible:outline-none disabled:opacity-50"
+          className="max-h-32 min-h-11 flex-1 resize-none rounded-[20px] border border-hairline bg-canvas px-4 py-2.5 font-sans text-[15px] text-ink placeholder:text-ink-muted-48 focus-visible:border-primary focus-visible:outline-none disabled:opacity-50"
         />
 
         <Button

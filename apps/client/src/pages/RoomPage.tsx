@@ -84,21 +84,23 @@ function RoomPageInner() {
       {/* Room shell: full width on mobile, pinned to a centered 50%-width
           column from the md breakpoint up — a narrower reading column reads
           better than an edge-to-edge chat on wide desktop viewports. */}
-      <div className="mx-auto flex min-h-0 w-full flex-1 flex-col md:w-1/2 md:min-w-[420px] md:border-x md:border-frame">
-        <header className="flex flex-none items-center justify-between gap-3 border-b border-frame px-4 py-3">
-          <div className="flex min-w-0 items-center gap-1.5">
-            <h1 className="truncate font-mono text-xs font-semibold uppercase tracking-[1.5px] text-ink">
-              Room <span className="text-mint-text">{session.roomId}</span>
+      <div className="mx-auto flex min-h-0 w-full flex-1 flex-col md:w-1/2 md:min-w-[420px] md:border-x md:border-hairline">
+        {/* sub-nav-frosted: parchment @ ~80% + blur, category name left,
+            primary action right — Apple's product-page sub-nav pattern. */}
+        <header className="flex flex-none items-center justify-between gap-3 border-b border-hairline bg-parchment/80 px-4 py-3 backdrop-blur-md">
+          <div className="flex min-w-0 items-center gap-1">
+            <h1 className="truncate text-[21px] font-semibold leading-tight tracking-[0.231px] text-ink">
+              {session.roomId}
             </h1>
-            <IconButton label="Salin Room ID" onClick={handleCopyRoomId}>
+            <IconButton label="Salin Room ID" onClick={handleCopyRoomId} className="h-9 w-9">
               <Icon name={copyFeedback ? 'check' : 'copy'} className="h-4 w-4" />
             </IconButton>
           </div>
           <div className="flex flex-none items-center gap-2">
-            <IconButton label="Buka daftar user" className="md:hidden" onClick={() => setDrawerOpen(true)}>
+            <IconButton label="Buka daftar user" className="h-9 w-9 md:hidden" onClick={() => setDrawerOpen(true)}>
               <Icon name="users" className="h-5 w-5" />
             </IconButton>
-            <Button variant="secondary" onClick={handleLeave}>
+            <Button variant="danger" onClick={handleLeave}>
               <Icon name="logout" className="h-4 w-4" />
               Keluar
             </Button>
@@ -116,7 +118,7 @@ function RoomPageInner() {
             }}
           >
             {phase === 'joining' && (
-              <div className="flex flex-1 items-center justify-center font-mono text-xs uppercase tracking-[1.5px] text-muted">
+              <div className="flex flex-1 items-center justify-center text-sm text-ink-muted-48">
                 Bergabung ke room...
               </div>
             )}
@@ -131,10 +133,10 @@ function RoomPageInner() {
             {phase === 'joined' && (
               <>
                 {users.length <= 1 && (
-                  <div className="mx-3 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-[20px] border border-frame bg-canvas-alt px-4 py-2.5 font-sans text-sm text-ink sm:mx-4">
+                  <div className="mx-3 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-[18px] border border-hairline bg-canvas px-4 py-2.5 font-sans text-sm text-ink sm:mx-4">
                     <span>
                       Kamu sendirian di sini. Ajak orang lain pakai Room ID{' '}
-                      <span className="font-mono text-mint-text">{session.roomId}</span>.
+                      <span className="font-semibold text-primary">{session.roomId}</span>.
                     </span>
                     <Button variant="secondary" onClick={handleCopyRoomId} className="flex-none">
                       <Icon name="copy" className="h-4 w-4" />
@@ -158,7 +160,7 @@ function RoomPageInner() {
             )}
           </div>
 
-          <aside className="hidden w-60 flex-none border-l border-frame md:block">
+          <aside className="hidden w-60 flex-none border-l border-hairline md:block">
             <UserList users={users} selfUsername={session.username} />
           </aside>
         </div>
@@ -166,13 +168,11 @@ function RoomPageInner() {
 
       {drawerOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
-          <div className="flex-1 bg-black/70" onClick={() => setDrawerOpen(false)} aria-hidden="true" />
-          <div className="w-64 flex-none border-l border-frame bg-canvas">
+          <div className="flex-1 bg-black/40" onClick={() => setDrawerOpen(false)} aria-hidden="true" />
+          <div className="w-64 flex-none border-l border-hairline bg-canvas">
             <div className="flex items-center justify-between px-2 py-2">
-              <span className="px-2 font-mono text-[10px] font-medium uppercase tracking-[1.5px] text-muted">
-                Peserta
-              </span>
-              <IconButton label="Tutup daftar user" onClick={() => setDrawerOpen(false)}>
+              <span className="px-2 text-xs font-semibold text-ink-muted-48">Peserta</span>
+              <IconButton label="Tutup daftar user" onClick={() => setDrawerOpen(false)} className="h-9 w-9">
                 <Icon name="x" className="h-4 w-4" />
               </IconButton>
             </div>

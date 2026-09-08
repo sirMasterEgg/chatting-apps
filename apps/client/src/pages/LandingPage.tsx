@@ -63,26 +63,20 @@ function LandingPageInner() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-canvas px-4 py-16 text-ink">
       <div className="mb-10 flex flex-col items-center text-center">
-        <p className="mb-3 font-sans text-[19px] font-light uppercase tracking-[1.9px] text-mint-text">
-          No history · No storage
-        </p>
-        <h1 className="font-display text-[15vw] leading-[0.8] tracking-[1.07px] text-ink sm:text-[9rem]">
-          CHAT
+        <h1 className="font-display text-[56px] font-semibold leading-[1.07] tracking-[-0.28px] text-ink">
+          Chat
         </h1>
-        <p className="mt-4 max-w-sm font-sans text-sm text-muted">
+        <p className="mt-3 max-w-sm font-sans text-lg font-normal leading-snug text-ink-muted-80">
           Tanpa daftar, tanpa riwayat. Ngobrol, lalu hilang.
         </p>
       </div>
 
-      <div className="w-full max-w-sm rounded-[24px] border border-ink bg-canvas-alt p-8">
-        <p className="font-mono text-[11px] font-medium uppercase tracking-[1.8px] text-muted">Masuk Room</p>
+      <div className="w-full max-w-sm rounded-[18px] border border-hairline bg-canvas p-6">
+        <p className="text-sm font-semibold text-ink">Masuk Room</p>
 
         <form className="mt-5 space-y-5" onSubmit={handleSubmit} noValidate>
           <div>
-            <label
-              htmlFor="username"
-              className="block font-mono text-[11px] uppercase tracking-[1.5px] text-muted"
-            >
+            <label htmlFor="username" className="block text-xs text-ink-muted-48">
               Username
             </label>
             <input
@@ -96,12 +90,12 @@ function LandingPageInner() {
               }}
               autoComplete="off"
               autoFocus
-              className="mt-2 w-full rounded-[2px] border border-ink/25 bg-canvas-alt px-3 py-2 font-sans text-sm text-ink focus-visible:border-mint-text focus-visible:outline-none"
+              className="mt-1.5 w-full rounded-full border border-hairline bg-canvas px-4 py-2.5 font-sans text-[15px] text-ink focus-visible:border-primary focus-visible:outline-none"
               aria-invalid={!!usernameError}
               aria-describedby={usernameError ? 'username-error' : undefined}
             />
             {usernameError && (
-              <p id="username-error" role="alert" className="mt-1.5 font-sans text-xs text-ultraviolet">
+              <p id="username-error" role="alert" className="mt-1.5 px-1 font-sans text-xs text-ink-muted-80">
                 {usernameError}
                 {suggestion && (
                   <>
@@ -109,7 +103,7 @@ function LandingPageInner() {
                     Coba{' '}
                     <button
                       type="button"
-                      className="font-mono uppercase tracking-[1px] text-mint-text underline underline-offset-2 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-cyan"
+                      className="text-primary underline underline-offset-2 hover:text-primary-focus focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-focus"
                       onClick={() => {
                         setUsername(suggestion);
                         setUsernameError(null);
@@ -127,13 +121,10 @@ function LandingPageInner() {
           </div>
 
           <div>
-            <label
-              htmlFor="roomId"
-              className="block font-mono text-[11px] uppercase tracking-[1.5px] text-muted"
-            >
+            <label htmlFor="roomId" className="block text-xs text-ink-muted-48">
               Room ID
             </label>
-            <div className="mt-2 flex gap-2">
+            <div className="mt-1.5 flex gap-2">
               <input
                 id="roomId"
                 value={roomId}
@@ -142,7 +133,7 @@ function LandingPageInner() {
                   setRoomIdError(null);
                 }}
                 autoComplete="off"
-                className="w-full min-w-0 rounded-[2px] border border-ink/25 bg-canvas-alt px-3 py-2 font-sans text-sm text-ink focus-visible:border-mint-text focus-visible:outline-none"
+                className="w-full min-w-0 rounded-full border border-hairline bg-canvas px-4 py-2.5 font-sans text-[15px] text-ink focus-visible:border-primary focus-visible:outline-none"
                 aria-invalid={!!roomIdError}
                 aria-describedby={roomIdError ? 'roomid-error' : undefined}
               />
@@ -156,17 +147,14 @@ function LandingPageInner() {
               </Button>
             </div>
             {roomIdError && (
-              <p id="roomid-error" role="alert" className="mt-1.5 font-sans text-xs text-ultraviolet">
+              <p id="roomid-error" role="alert" className="mt-1.5 px-1 font-sans text-xs text-ink-muted-80">
                 {roomIdError}
               </p>
             )}
           </div>
 
           {formError && (
-            <p
-              role="alert"
-              className="rounded-[14px] border border-ultraviolet bg-ultraviolet/10 px-3 py-2 font-sans text-sm text-ink"
-            >
+            <p role="alert" className="rounded-[14px] border border-hairline bg-parchment px-3 py-2 font-sans text-sm text-ink">
               {formError}
             </p>
           )}

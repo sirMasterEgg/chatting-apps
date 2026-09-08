@@ -20,13 +20,13 @@ export function Toast({ message, onDismiss, tone = 'error', autoDismissMs = 6000
     <div
       role="alert"
       className={cx(
-        'pointer-events-auto flex items-start gap-3 rounded-[20px] border bg-canvas px-4 py-3',
-        tone === 'error' ? 'border-ultraviolet text-ink' : 'border-ink text-ink',
+        'pointer-events-auto flex items-start gap-3 rounded-[18px] border bg-canvas px-4 py-3',
+        tone === 'error' ? 'border-2 border-ink' : 'border-hairline',
       )}
     >
-      <Icon name="alert" className={cx('mt-0.5 h-5 w-5 flex-none', tone === 'error' ? 'text-ultraviolet' : 'text-mint-text')} />
-      <p className="flex-1 font-sans text-sm">{message}</p>
-      <IconButton label="Tutup notifikasi" onClick={onDismiss} className="-mr-1 -mt-1 h-6 w-6">
+      <Icon name="alert" className="mt-0.5 h-5 w-5 flex-none text-ink" />
+      <p className="flex-1 font-sans text-sm text-ink">{message}</p>
+      <IconButton label="Tutup notifikasi" onClick={onDismiss} className="-mr-2 -mt-2 h-8 w-8">
         <Icon name="x" className="h-4 w-4" />
       </IconButton>
     </div>
