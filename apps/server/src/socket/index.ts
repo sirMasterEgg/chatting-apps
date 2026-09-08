@@ -1,19 +1,10 @@
 import type { Server as HttpServer } from 'node:http';
 import { Server } from 'socket.io';
-import type {
-  ClientToServerEvents,
-  InterServerEvents,
-  ServerToClientEvents,
-  SocketData,
-} from '@shared/events.js';
 import { env } from '../config/env.js';
+import { registerSocketHandlers } from './handlers/index.js';
+import type { AppServer } from './types.js';
 
-export type AppServer = Server<
-  ClientToServerEvents,
-  ServerToClientEvents,
-  InterServerEvents,
-  SocketData
->;
+export type { AppServer } from './types.js';
 
 export function createSocketServer(httpServer: HttpServer): AppServer {
   const io: AppServer = new Server(httpServer, {
@@ -25,9 +16,7 @@ export function createSocketServer(httpServer: HttpServer): AppServer {
   });
 
   io.on('connection', (socket) => {
-    // Issue #2 fills in room:join / message:send / room:leave / disconnect.
-    // Issue #3 adds typing indicators, rate limiting and idle timeouts.
-    void socket;
+    registerSocketHandlers(io, socket);
   });
 
   return io;
