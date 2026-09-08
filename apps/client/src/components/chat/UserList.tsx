@@ -17,7 +17,7 @@ export function UserList({ users, selfUsername }: UserListProps) {
         {users.map((user) => {
           const isSelf = user.username.toLowerCase() === selfUsername.toLowerCase();
           return (
-            <li key={user.id} className="flex items-center gap-2 rounded-[14px] px-2 py-1.5 font-sans text-sm text-white">
+            <li key={user.id} className="flex items-center gap-2 rounded-[14px] px-2 py-1.5 font-sans text-sm text-ink">
               <span className="h-2 w-2 flex-none rounded-full bg-mint" aria-hidden="true" />
               <span className="truncate">{user.username}</span>
               {isSelf && (

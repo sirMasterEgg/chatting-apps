@@ -14,11 +14,11 @@ export function SystemMessageRow({ message, repeatCount }: SystemMessageRowProps
     <div className="flex items-center justify-center gap-1.5 py-2 text-center font-mono text-[10px] uppercase tracking-[1.5px] text-muted">
       <Icon
         name={tone === 'join' ? 'login' : tone === 'leave' ? 'logout' : 'check'}
-        className={tone === 'join' ? 'h-3.5 w-3.5 flex-none text-mint' : tone === 'leave' ? 'h-3.5 w-3.5 flex-none text-ultraviolet' : 'h-3.5 w-3.5 flex-none'}
+        className={tone === 'join' ? 'h-3.5 w-3.5 flex-none text-mint-text' : tone === 'leave' ? 'h-3.5 w-3.5 flex-none text-ultraviolet' : 'h-3.5 w-3.5 flex-none'}
       />
       <span>{message.text}</span>
-      {repeatCount > 1 && <span className="text-white/40">×{repeatCount}</span>}
-      <span className="text-white/40">{formatTime(message.sentAt)}</span>
+      {repeatCount > 1 && <span className="text-ink/35">×{repeatCount}</span>}
+      <span className="text-ink/35">{formatTime(message.sentAt)}</span>
     </div>
   );
 }

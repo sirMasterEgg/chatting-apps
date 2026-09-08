@@ -30,7 +30,7 @@ export function MessageItem({ message, isSelf, onImageClick }: MessageItemProps)
           'max-w-[80%] rounded-[20px] px-4 py-2.5 font-sans text-sm sm:max-w-[65%]',
           isSelf
             ? 'rounded-tr-[4px] bg-mint text-black'
-            : 'rounded-tl-[4px] border border-white/80 bg-canvas text-white',
+            : 'rounded-tl-[4px] border border-frame bg-canvas-alt text-ink',
         )}
       >
         {message.kind === 'text' && (
@@ -59,7 +59,7 @@ export function MessageItem({ message, isSelf, onImageClick }: MessageItemProps)
             download={attachment.name}
             className={cx(
               'flex items-center gap-3 rounded-[14px] px-2.5 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-cyan',
-              isSelf ? 'bg-black/10 hover:bg-black/15' : 'bg-white/5 hover:bg-white/10',
+              isSelf ? 'bg-black/10 hover:bg-black/15' : 'bg-black/5 hover:bg-black/10',
             )}
           >
             <Icon name="file" className="h-6 w-6 flex-none" />

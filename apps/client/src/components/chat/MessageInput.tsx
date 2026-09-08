@@ -163,7 +163,7 @@ export const MessageInput = forwardRef<MessageInputHandle, MessageInputProps>(fu
           rows={1}
           placeholder={disabled ? 'Menunggu koneksi...' : 'Tulis pesan... (Enter untuk kirim)'}
           aria-label="Tulis pesan"
-          className="max-h-32 min-h-[2.5rem] flex-1 resize-none rounded-[2px] border border-white/40 bg-canvas px-3 py-2 font-sans text-sm text-white placeholder:text-muted focus-visible:border-mint focus-visible:outline-none disabled:opacity-50"
+          className="max-h-32 min-h-[2.5rem] flex-1 resize-none rounded-[2px] border border-ink/25 bg-canvas-alt px-3 py-2 font-sans text-sm text-ink placeholder:text-muted focus-visible:border-mint-text focus-visible:outline-none disabled:opacity-50"
         />
 
         <Button

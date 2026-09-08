@@ -28,9 +28,9 @@ export function Dialog({ title, children, actions, onClose }: DialogProps) {
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="dialog-title"
-        className="w-full max-w-sm rounded-[24px] border border-white bg-canvas p-6 focus:outline-none"
+        className="w-full max-w-sm rounded-[24px] border border-ink bg-canvas-alt p-6 focus:outline-none"
       >
-        <h2 id="dialog-title" className="font-sans text-lg font-bold text-white">
+        <h2 id="dialog-title" className="font-sans text-lg font-bold text-ink">
           {title}
         </h2>
         <div className="mt-2 font-sans text-sm text-muted">{children}</div>

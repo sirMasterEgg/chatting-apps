@@ -78,7 +78,7 @@ function RoomPageInner() {
   const inputDisabled = status !== 'online' || phase !== 'joined';
 
   return (
-    <div className="flex h-screen flex-col bg-canvas text-white">
+    <div className="flex h-screen flex-col bg-canvas text-ink">
       <ConnectionBanner status={status} />
 
       {/* Room shell: full width on mobile, pinned to a centered 50%-width
@@ -87,8 +87,8 @@ function RoomPageInner() {
       <div className="mx-auto flex min-h-0 w-full flex-1 flex-col md:w-1/2 md:min-w-[420px] md:border-x md:border-frame">
         <header className="flex flex-none items-center justify-between gap-3 border-b border-frame px-4 py-3">
           <div className="flex min-w-0 items-center gap-1.5">
-            <h1 className="truncate font-mono text-xs font-semibold uppercase tracking-[1.5px] text-white">
-              Room <span className="text-mint">{session.roomId}</span>
+            <h1 className="truncate font-mono text-xs font-semibold uppercase tracking-[1.5px] text-ink">
+              Room <span className="text-mint-text">{session.roomId}</span>
             </h1>
             <IconButton label="Salin Room ID" onClick={handleCopyRoomId}>
               <Icon name={copyFeedback ? 'check' : 'copy'} className="h-4 w-4" />
@@ -123,7 +123,7 @@ function RoomPageInner() {
 
             {phase === 'failed' && (
               <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-                <p className="font-sans text-sm text-white">{joinError ?? 'Gagal bergabung ke room.'}</p>
+                <p className="font-sans text-sm text-ink">{joinError ?? 'Gagal bergabung ke room.'}</p>
                 <Button onClick={handleBackToLanding}>Kembali ke Landing</Button>
               </div>
             )}
@@ -131,10 +131,10 @@ function RoomPageInner() {
             {phase === 'joined' && (
               <>
                 {users.length <= 1 && (
-                  <div className="mx-3 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-[20px] border border-white px-4 py-2.5 font-sans text-sm text-white sm:mx-4">
+                  <div className="mx-3 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-[20px] border border-frame bg-canvas-alt px-4 py-2.5 font-sans text-sm text-ink sm:mx-4">
                     <span>
                       Kamu sendirian di sini. Ajak orang lain pakai Room ID{' '}
-                      <span className="font-mono text-mint">{session.roomId}</span>.
+                      <span className="font-mono text-mint-text">{session.roomId}</span>.
                     </span>
                     <Button variant="secondary" onClick={handleCopyRoomId} className="flex-none">
                       <Icon name="copy" className="h-4 w-4" />

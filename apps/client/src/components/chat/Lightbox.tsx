@@ -36,7 +36,7 @@ export function Lightbox({ src, name, onClose }: LightboxProps) {
           href={src}
           download={name}
           onClick={(event) => event.stopPropagation()}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white bg-canvas text-white hover:bg-mint hover:text-black hover:border-mint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-cyan"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink bg-canvas-alt text-ink hover:bg-mint hover:text-black hover:border-mint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-cyan"
           aria-label="Unduh gambar"
         >
           <Icon name="download" className="h-5 w-5" />
@@ -47,7 +47,7 @@ export function Lightbox({ src, name, onClose }: LightboxProps) {
             event.stopPropagation();
             onClose();
           }}
-          className="border border-white bg-canvas hover:border-mint"
+          className="border border-ink bg-canvas-alt hover:border-mint"
         >
           <Icon name="x" className="h-5 w-5" />
         </IconButton>

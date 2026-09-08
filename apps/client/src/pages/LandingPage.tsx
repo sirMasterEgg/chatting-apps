@@ -61,12 +61,12 @@ function LandingPageInner() {
     validateUsername(username.trim()) !== null || validateRoomId(roomId.trim()) !== null;
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-canvas px-4 py-16 text-white">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-canvas px-4 py-16 text-ink">
       <div className="mb-10 flex flex-col items-center text-center">
-        <p className="mb-3 font-sans text-[19px] font-light uppercase tracking-[1.9px] text-mint">
+        <p className="mb-3 font-sans text-[19px] font-light uppercase tracking-[1.9px] text-mint-text">
           No history · No storage
         </p>
-        <h1 className="font-display text-[15vw] leading-[0.8] tracking-[1.07px] text-white sm:text-[9rem]">
+        <h1 className="font-display text-[15vw] leading-[0.8] tracking-[1.07px] text-ink sm:text-[9rem]">
           CHAT
         </h1>
         <p className="mt-4 max-w-sm font-sans text-sm text-muted">
@@ -74,7 +74,7 @@ function LandingPageInner() {
         </p>
       </div>
 
-      <div className="w-full max-w-sm rounded-[24px] border border-white bg-canvas p-8">
+      <div className="w-full max-w-sm rounded-[24px] border border-ink bg-canvas-alt p-8">
         <p className="font-mono text-[11px] font-medium uppercase tracking-[1.8px] text-muted">Masuk Room</p>
 
         <form className="mt-5 space-y-5" onSubmit={handleSubmit} noValidate>
@@ -96,7 +96,7 @@ function LandingPageInner() {
               }}
               autoComplete="off"
               autoFocus
-              className="mt-2 w-full rounded-[2px] border border-white/40 bg-canvas px-3 py-2 font-sans text-sm text-white focus-visible:border-mint focus-visible:outline-none"
+              className="mt-2 w-full rounded-[2px] border border-ink/25 bg-canvas-alt px-3 py-2 font-sans text-sm text-ink focus-visible:border-mint-text focus-visible:outline-none"
               aria-invalid={!!usernameError}
               aria-describedby={usernameError ? 'username-error' : undefined}
             />
@@ -109,7 +109,7 @@ function LandingPageInner() {
                     Coba{' '}
                     <button
                       type="button"
-                      className="font-mono uppercase tracking-[1px] text-mint underline underline-offset-2 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-cyan"
+                      className="font-mono uppercase tracking-[1px] text-mint-text underline underline-offset-2 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-cyan"
                       onClick={() => {
                         setUsername(suggestion);
                         setUsernameError(null);
@@ -142,7 +142,7 @@ function LandingPageInner() {
                   setRoomIdError(null);
                 }}
                 autoComplete="off"
-                className="w-full min-w-0 rounded-[2px] border border-white/40 bg-canvas px-3 py-2 font-sans text-sm text-white focus-visible:border-mint focus-visible:outline-none"
+                className="w-full min-w-0 rounded-[2px] border border-ink/25 bg-canvas-alt px-3 py-2 font-sans text-sm text-ink focus-visible:border-mint-text focus-visible:outline-none"
                 aria-invalid={!!roomIdError}
                 aria-describedby={roomIdError ? 'roomid-error' : undefined}
               />
@@ -165,7 +165,7 @@ function LandingPageInner() {
           {formError && (
             <p
               role="alert"
-              className="rounded-[14px] border border-ultraviolet bg-ultraviolet/10 px-3 py-2 font-sans text-sm text-white"
+              className="rounded-[14px] border border-ultraviolet bg-ultraviolet/10 px-3 py-2 font-sans text-sm text-ink"
             >
               {formError}
             </p>
