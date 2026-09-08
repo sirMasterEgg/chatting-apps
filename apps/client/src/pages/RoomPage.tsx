@@ -1,19 +1,26 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
+import { Dialog } from '@/components/ui/Dialog';
 import { Icon } from '@/components/ui/Icon';
 import { IconButton } from '@/components/ui/IconButton';
-import { MessageInput } from '@/components/chat/MessageInput';
+import { Toast } from '@/components/ui/Toast';
+import { ConnectionBanner } from '@/components/chat/ConnectionBanner';
+import { Lightbox } from '@/components/chat/Lightbox';
+import { MessageInput, type MessageInputHandle } from '@/components/chat/MessageInput';
 import { MessageList } from '@/components/chat/MessageList';
+import { TypingIndicator } from '@/components/chat/TypingIndicator';
 import { UserList } from '@/components/chat/UserList';
 import { SessionProvider, useSession } from '@/context/SessionContext';
-import { SocketProvider } from '@/context/SocketContext';
+import { SocketProvider, useSocket } from '@/context/SocketContext';
 import { useChatRoom } from '@/hooks/useChatRoom';
+import { useUnreadTitle } from '@/hooks/useUnreadTitle';
 
 function RoomPageInner() {
   const { roomId: routeRoomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
   const { session, clearSession } = useSession();
+  const { socket, status } = useSocket();
 
   // No/mismatched session (e.g. a pasted room URL) — bounce to landing.
   useEffect(() => {
@@ -22,9 +29,26 @@ function RoomPageInner() {
     }
   }, [session, routeRoomId, navigate]);
 
-  const { phase, joinError, messages, users, sendMessage, leaveRoom } = useChatRoom(session);
+  const {
+    phase,
+    joinError,
+    showRejoinFailedDialog,
+    messages,
+    users,
+    typingUsernames,
+    roomError,
+    clearRoomError,
+    sendMessage,
+    leaveRoom,
+  } = useChatRoom(session);
 
+  const [lightbox, setLightbox] = useState<{ src: string; name: string } | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState(false);
+  const messageInputRef = useRef<MessageInputHandle>(null);
+
+  const latestMessageId = messages.length > 0 ? messages[messages.length - 1].id : null;
+  useUnreadTitle(latestMessageId);
 
   const handleCopyRoomId = useCallback(() => {
     if (!session) return;
@@ -51,8 +75,12 @@ function RoomPageInner() {
     return null;
   }
 
+  const inputDisabled = status !== 'online' || phase !== 'joined';
+
   return (
     <div className="flex h-screen flex-col bg-slate-950 text-slate-100">
+      <ConnectionBanner status={status} />
+
       <header className="flex flex-none items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
         <div className="flex min-w-0 items-center gap-1.5">
           <h1 className="truncate text-sm font-semibold text-slate-200">
@@ -62,14 +90,27 @@ function RoomPageInner() {
             <Icon name={copyFeedback ? 'check' : 'copy'} className="h-4 w-4" />
           </IconButton>
         </div>
-        <Button variant="secondary" onClick={handleLeave}>
-          <Icon name="logout" className="h-4 w-4" />
-          Keluar
-        </Button>
+        <div className="flex flex-none items-center gap-2">
+          <IconButton label="Buka daftar user" className="md:hidden" onClick={() => setDrawerOpen(true)}>
+            <Icon name="users" className="h-5 w-5" />
+          </IconButton>
+          <Button variant="secondary" onClick={handleLeave}>
+            <Icon name="logout" className="h-4 w-4" />
+            Keluar
+          </Button>
+        </div>
       </header>
 
       <div className="flex min-h-0 flex-1">
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div
+          className="flex min-w-0 flex-1 flex-col"
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={(event) => {
+            event.preventDefault();
+            const file = event.dataTransfer.files?.[0];
+            if (file) messageInputRef.current?.addFile(file);
+          }}
+        >
           {phase === 'joining' && (
             <div className="flex flex-1 items-center justify-center text-sm text-slate-500">
               Bergabung ke room...
@@ -85,8 +126,30 @@ function RoomPageInner() {
 
           {phase === 'joined' && (
             <>
-              <MessageList messages={messages} selfUsername={session.username} />
-              <MessageInput disabled={phase !== 'joined'} sendMessage={sendMessage} />
+              {users.length <= 1 && (
+                <div className="mx-3 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800 bg-slate-900 px-4 py-2.5 text-sm text-slate-300 sm:mx-4">
+                  <span>
+                    Kamu sendirian di sini. Ajak orang lain pakai Room ID{' '}
+                    <span className="font-mono text-sky-400">{session.roomId}</span>.
+                  </span>
+                  <Button variant="secondary" onClick={handleCopyRoomId} className="flex-none">
+                    <Icon name="copy" className="h-4 w-4" />
+                    {copyFeedback ? 'Tersalin!' : 'Salin'}
+                  </Button>
+                </div>
+              )}
+              <MessageList
+                messages={messages}
+                selfUsername={session.username}
+                onImageClick={(src, name) => setLightbox({ src, name })}
+              />
+              <TypingIndicator usernames={typingUsernames} />
+              <MessageInput
+                ref={messageInputRef}
+                socket={socket}
+                disabled={inputDisabled}
+                sendMessage={sendMessage}
+              />
             </>
           )}
         </div>
@@ -95,6 +158,39 @@ function RoomPageInner() {
           <UserList users={users} selfUsername={session.username} />
         </aside>
       </div>
+
+      {drawerOpen && (
+        <div className="fixed inset-0 z-40 flex md:hidden">
+          <div className="flex-1 bg-black/60" onClick={() => setDrawerOpen(false)} aria-hidden="true" />
+          <div className="w-64 flex-none border-l border-slate-800 bg-slate-950">
+            <div className="flex items-center justify-between px-2 py-2">
+              <span className="px-2 text-xs font-medium uppercase tracking-wide text-slate-500">Peserta</span>
+              <IconButton label="Tutup daftar user" onClick={() => setDrawerOpen(false)}>
+                <Icon name="x" className="h-4 w-4" />
+              </IconButton>
+            </div>
+            <UserList users={users} selfUsername={session.username} />
+          </div>
+        </div>
+      )}
+
+      {lightbox && (
+        <Lightbox src={lightbox.src} name={lightbox.name} onClose={() => setLightbox(null)} />
+      )}
+
+      {roomError && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex justify-center px-4">
+          <div className="pointer-events-auto w-full max-w-sm">
+            <Toast message={roomError.message} onDismiss={clearRoomError} />
+          </div>
+        </div>
+      )}
+
+      {showRejoinFailedDialog && (
+        <Dialog title="Gagal tersambung kembali" actions={<Button onClick={handleBackToLanding}>Kembali ke Landing</Button>}>
+          {joinError ?? 'Username kamu mungkin sudah dipakai oleh koneksi lama. Silakan bergabung lagi dari landing page.'}
+        </Dialog>
+      )}
     </div>
   );
 }

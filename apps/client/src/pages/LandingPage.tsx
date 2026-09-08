@@ -1,9 +1,9 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { SessionProvider, useSession } from '@/context/SessionContext';
 import { getSocket } from '@/lib/socket';
-import { validateRoomId, validateUsername } from '@/lib/validation';
+import { suggestUsername, validateRoomId, validateUsername } from '@/lib/validation';
 
 function LandingPageInner() {
   const navigate = useNavigate();
@@ -14,7 +14,9 @@ function LandingPageInner() {
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [roomIdError, setRoomIdError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [suggestion, setSuggestion] = useState<string | null>(null);
   const [isJoining, setIsJoining] = useState(false);
+  const usernameRef = useRef<HTMLInputElement>(null);
 
   function handleCreateRoom() {
     setRoomId(crypto.randomUUID().slice(0, 8));
@@ -30,6 +32,7 @@ function LandingPageInner() {
     setUsernameError(uError);
     setRoomIdError(rError);
     setFormError(null);
+    setSuggestion(null);
     if (uError || rError) return;
 
     setIsJoining(true);
@@ -46,6 +49,8 @@ function LandingPageInner() {
       socket.disconnect();
       if (/username|dipakai|taken/i.test(res.error)) {
         setUsernameError(res.error);
+        setSuggestion(suggestUsername(trimmedUsername));
+        usernameRef.current?.focus();
       } else {
         setFormError(res.error);
       }
@@ -68,10 +73,12 @@ function LandingPageInner() {
             </label>
             <input
               id="username"
+              ref={usernameRef}
               value={username}
               onChange={(event) => {
                 setUsername(event.target.value);
                 setUsernameError(null);
+                setSuggestion(null);
               }}
               autoComplete="off"
               autoFocus
@@ -82,6 +89,25 @@ function LandingPageInner() {
             {usernameError && (
               <p id="username-error" role="alert" className="mt-1 text-xs text-rose-400">
                 {usernameError}
+                {suggestion && (
+                  <>
+                    {' '}
+                    Coba{' '}
+                    <button
+                      type="button"
+                      className="underline hover:text-rose-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-300"
+                      onClick={() => {
+                        setUsername(suggestion);
+                        setUsernameError(null);
+                        setSuggestion(null);
+                        usernameRef.current?.focus();
+                      }}
+                    >
+                      {suggestion}
+                    </button>
+                    ?
+                  </>
+                )}
               </p>
             )}
           </div>

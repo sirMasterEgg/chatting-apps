@@ -1,14 +1,22 @@
+import Linkify from 'linkify-react';
 import type { ChatMessage } from '@shared/types';
 import { Icon } from '@/components/ui/Icon';
-import { cx, formatBytes, formatTime } from '@/lib/format';
+import { cx, formatBytes, formatTime, truncateFilename } from '@/lib/format';
+import { linkifyOptions } from '@/lib/linkify';
+import { attachmentKindFromMime } from '@/lib/validation';
 
 interface MessageItemProps {
   message: ChatMessage;
   isSelf: boolean;
+  onImageClick: (src: string, name: string) => void;
 }
 
-export function MessageItem({ message, isSelf }: MessageItemProps) {
+export function MessageItem({ message, isSelf, onImageClick }: MessageItemProps) {
   const attachment = message.attachment;
+  // Never trust `message.kind` alone for whether to render an inline <img> —
+  // re-derive from the actual mimeType so a mislabeled/non-whitelisted file
+  // always falls back to a plain file card.
+  const isInlineImage = message.kind === 'image' && !!attachment && attachmentKindFromMime(attachment.mimeType) === 'image';
 
   return (
     <div className={cx('flex flex-col', isSelf ? 'items-end' : 'items-start')}>
@@ -22,18 +30,26 @@ export function MessageItem({ message, isSelf }: MessageItemProps) {
         )}
       >
         {message.kind === 'text' && (
-          <div className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{message.text}</div>
+          <div className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
+            <Linkify options={linkifyOptions}>{message.text ?? ''}</Linkify>
+          </div>
         )}
 
-        {message.kind === 'image' && attachment && (
-          <img
-            src={attachment.dataUrl}
-            alt={attachment.name}
-            className="max-h-72 max-w-full rounded-lg object-cover"
-          />
+        {isInlineImage && attachment && (
+          <button
+            type="button"
+            onClick={() => onImageClick(attachment.dataUrl, attachment.name)}
+            className="block overflow-hidden rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+          >
+            <img
+              src={attachment.dataUrl}
+              alt={attachment.name}
+              className="max-h-72 max-w-full rounded-lg object-cover"
+            />
+          </button>
         )}
 
-        {message.kind === 'file' && attachment && (
+        {!isInlineImage && attachment && message.kind !== 'text' && (
           <a
             href={attachment.dataUrl}
             download={attachment.name}
@@ -44,7 +60,7 @@ export function MessageItem({ message, isSelf }: MessageItemProps) {
           >
             <Icon name="file" className="h-6 w-6 flex-none" />
             <span className="min-w-0 flex-1">
-              <span className="block truncate">{attachment.name}</span>
+              <span className="block truncate">{truncateFilename(attachment.name)}</span>
               <span className="block text-xs opacity-75">{formatBytes(attachment.size)}</span>
             </span>
             <Icon name="download" className="h-4 w-4 flex-none" />

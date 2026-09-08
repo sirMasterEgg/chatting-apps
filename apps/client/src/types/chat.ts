@@ -4,4 +4,8 @@ export interface Session {
   roomId: string;
 }
 
+export type ConnectionStatus = 'connecting' | 'online' | 'reconnecting' | 'offline';
+
 export type RoomJoinPhase = 'joining' | 'joined' | 'failed';
+
+export type SendPhase = 'reading' | 'sending' | null;

@@ -29,6 +29,19 @@ export function validateRoomId(raw: string): string | null {
   return null;
 }
 
+/** Suggests an alternative username when the chosen one is already taken. */
+export function suggestUsername(raw: string): string {
+  const value = raw.trim();
+  const match = value.match(/^(.*?)(\d+)$/);
+  if (match) {
+    const [, base, num] = match;
+    const next = `${base}${Number(num) + 1}`;
+    return next.length <= USERNAME_MAX ? next : `${base}2`;
+  }
+  const suggestion = `${value}2`;
+  return suggestion.length <= USERNAME_MAX ? suggestion : `${value.slice(0, USERNAME_MAX - 1)}2`;
+}
+
 export type AttachmentKind = 'image' | 'file';
 
 export function attachmentKindFromMime(mimeType: string): AttachmentKind {
