@@ -56,44 +56,53 @@ export function registerRoomJoinHandler(io: AppServer, socket: AppSocket): void 
       return;
     }
 
-    if (isUsernameTaken(roomId, username)) {
-      ack({ ok: false, error: 'USERNAME_TAKEN' });
-      return;
+    try {
+      if (await isUsernameTaken(roomId, username)) {
+        ack({ ok: false, error: 'USERNAME_TAKEN' });
+        return;
+      }
+
+      if (!(await roomExists(roomId)) && (await getRoomCount()) >= MAX_ROOMS) {
+        ack({ ok: false, error: 'SERVER_FULL' });
+        return;
+      }
+
+      if ((await getRoomUserCount(roomId)) >= MAX_USERS_PER_ROOM) {
+        ack({ ok: false, error: 'ROOM_FULL' });
+        return;
+      }
+
+      const user: User = { id: socket.id, username };
+      const { room } = await joinRoom(roomId, user);
+
+      socket.data.roomId = roomId;
+      socket.data.username = username;
+      void socket.join(roomId);
+
+      clearJoinIdleTimer(socket.id);
+      clearViolations(socket.id);
+
+      const users = Array.from(room.users.values());
+      ack({ ok: true, users });
+
+      io.to(roomId).emit('users:update', users);
+
+      const systemMessage: ChatMessage = {
+        id: uuid(),
+        roomId,
+        kind: 'system',
+        author: null,
+        text: `${username} joined the room`,
+        sentAt: Date.now(),
+      };
+      io.to(roomId).emit('message:new', systemMessage);
+    } catch (err) {
+      // Room store failure (e.g. Redis unreachable when REDIS_URL is set) -
+      // surfaced as a clean ack error rather than leaving the client's
+      // promise hanging or crashing the process.
+       
+      console.error('[room:join] store error:', err);
+      ack({ ok: false, error: 'SERVER_ERROR' });
     }
-
-    if (!roomExists(roomId) && getRoomCount() >= MAX_ROOMS) {
-      ack({ ok: false, error: 'SERVER_FULL' });
-      return;
-    }
-
-    if (getRoomUserCount(roomId) >= MAX_USERS_PER_ROOM) {
-      ack({ ok: false, error: 'ROOM_FULL' });
-      return;
-    }
-
-    const user: User = { id: socket.id, username };
-    const { room } = joinRoom(roomId, user);
-
-    socket.data.roomId = roomId;
-    socket.data.username = username;
-    void socket.join(roomId);
-
-    clearJoinIdleTimer(socket.id);
-    clearViolations(socket.id);
-
-    const users = Array.from(room.users.values());
-    ack({ ok: true, users });
-
-    io.to(roomId).emit('users:update', users);
-
-    const systemMessage: ChatMessage = {
-      id: uuid(),
-      roomId,
-      kind: 'system',
-      author: null,
-      text: `${username} joined the room`,
-      sentAt: Date.now(),
-    };
-    io.to(roomId).emit('message:new', systemMessage);
   });
 }

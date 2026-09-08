@@ -19,33 +19,39 @@ export async function runLeaveFlow(io: AppServer, socket: AppSocket): Promise<vo
   clearTypingExpiry(socket.id);
   clearViolations(socket.id);
 
-  const result = leaveRoom(socket.id);
-
-  // Rate-limit cleanup can involve a Redis round trip - kick it off but
-  // don't let it delay the leave broadcast to the rest of the room; just
-  // make sure it's settled before this function itself resolves.
+  // Rate-limit cleanup can involve a Redis round trip - kick it off in
+  // parallel with the room-store lookup below rather than serializing them.
   const rateLimitCleanup = clearSocketRateLimits(socket.id);
 
-  if (!result) {
-    await rateLimitCleanup;
-    return;
-  }
+  try {
+    const result = await leaveRoom(socket.id);
+    if (!result) {
+      await rateLimitCleanup;
+      return;
+    }
 
-  const { roomId, user, room } = result;
+    const { roomId, user, room } = result;
 
-  const systemMessage: ChatMessage = {
-    id: uuid(),
-    roomId,
-    kind: 'system',
-    author: null,
-    text: `${user.username} left the room`,
-    sentAt: Date.now(),
-  };
-  io.to(roomId).emit('message:new', systemMessage);
+    const systemMessage: ChatMessage = {
+      id: uuid(),
+      roomId,
+      kind: 'system',
+      author: null,
+      text: `${user.username} left the room`,
+      sentAt: Date.now(),
+    };
+    io.to(roomId).emit('message:new', systemMessage);
 
-  if (room) {
-    io.to(roomId).emit('users:update', Array.from(room.users.values()));
-    broadcastTypingUpdate(io, room, socket.id);
+    if (room) {
+      io.to(roomId).emit('users:update', Array.from(room.users.values()));
+      broadcastTypingUpdate(io, room, socket.id);
+    }
+  } catch (err) {
+    // Room store failure (e.g. Redis unreachable) - log and move on rather
+    // than letting a disconnect/leave crash the process; the socket is
+    // going away regardless.
+     
+    console.error('[leaveFlow] store error:', err);
   }
 
   await rateLimitCleanup;

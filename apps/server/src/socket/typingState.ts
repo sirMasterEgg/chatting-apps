@@ -26,8 +26,14 @@ export function scheduleTypingExpiry(io: AppServer, socketId: string): void {
   clearTypingExpiry(socketId);
   const timer = setTimeout(() => {
     expiryTimers.delete(socketId);
-    const room = removeTypingUser(socketId);
-    if (room) broadcastTypingUpdate(io, room, socketId);
+    removeTypingUser(socketId)
+      .then((room) => {
+        if (room) broadcastTypingUpdate(io, room, socketId);
+      })
+      .catch((err: unknown) => {
+         
+        console.error('[typingState] expiry store error:', err);
+      });
   }, TYPING_TTL_MS);
   expiryTimers.set(socketId, timer);
 }
