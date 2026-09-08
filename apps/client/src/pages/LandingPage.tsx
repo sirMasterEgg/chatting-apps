@@ -1,7 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
-import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { SessionProvider, useSession } from '@/context/SessionContext';
 import { friendlyErrorMessage } from '@/lib/errors';
 import { getSocket } from '@/lib/socket';
@@ -18,7 +17,6 @@ function LandingPageInner() {
   const [formError, setFormError] = useState<string | null>(null);
   const [suggestion, setSuggestion] = useState<string | null>(null);
   const [isJoining, setIsJoining] = useState(false);
-  const [showLoadingPreview, setShowLoadingPreview] = useState(false);
   const usernameRef = useRef<HTMLInputElement>(null);
 
   function handleCreateRoom() {
@@ -167,16 +165,6 @@ function LandingPageInner() {
           </Button>
         </form>
       </div>
-
-      <button
-        type="button"
-        onClick={() => setShowLoadingPreview(true)}
-        className="mt-6 text-xs text-ink-muted-48 underline underline-offset-2 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-focus"
-      >
-        Show loading screen
-      </button>
-
-      {showLoadingPreview && <LoadingScreen onDismiss={() => setShowLoadingPreview(false)} />}
     </main>
   );
 }
