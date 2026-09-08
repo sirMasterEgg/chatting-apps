@@ -46,7 +46,7 @@ function RoomPageInner() {
   const [lightbox, setLightbox] = useState<{ src: string; name: string } | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState(false);
-  const [isRoomIdHidden, setIsRoomIdHidden] = useState(false);
+  const [isRoomIdHidden, setIsRoomIdHidden] = useState(true);
   const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   const messageInputRef = useRef<MessageInputHandle>(null);
   const roomShellRef = useRef<HTMLDivElement>(null);

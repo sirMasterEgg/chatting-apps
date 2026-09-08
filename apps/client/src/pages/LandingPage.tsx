@@ -64,10 +64,7 @@ function LandingPageInner() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-canvas px-4 py-16 text-ink">
       <div className="mb-10 flex flex-col items-center text-center">
-        <h1 className="font-display text-[56px] font-semibold leading-[1.07] tracking-[-0.28px] text-ink">
-          Chat
-        </h1>
-        <p className="mt-3 max-w-sm font-sans text-lg font-normal leading-snug text-ink-muted-80">
+        <p className="max-w-sm font-sans text-lg font-normal leading-snug text-ink-muted-80">
           No sign-up, no history. Talk, then it's gone.
         </p>
       </div>
