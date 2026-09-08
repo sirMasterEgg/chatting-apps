@@ -1,16 +1,276 @@
-import { useParams } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Button } from '@/components/ui/Button';
+import { Dialog } from '@/components/ui/Dialog';
+import { Icon } from '@/components/ui/Icon';
+import { IconButton } from '@/components/ui/IconButton';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
+import { Toast } from '@/components/ui/Toast';
+import { ConnectionBanner } from '@/components/chat/ConnectionBanner';
+import { Lightbox } from '@/components/chat/Lightbox';
+import { MessageInput, type MessageInputHandle } from '@/components/chat/MessageInput';
+import { MessageList } from '@/components/chat/MessageList';
+import { TypingIndicator } from '@/components/chat/TypingIndicator';
+import { UserList } from '@/components/chat/UserList';
+import { SessionProvider, useSession } from '@/context/SessionContext';
+import { SocketProvider, useSocket } from '@/context/SocketContext';
+import { useChatRoom } from '@/hooks/useChatRoom';
+import { useUnreadTitle } from '@/hooks/useUnreadTitle';
 
-export function RoomPage() {
-  const { roomId } = useParams<{ roomId: string }>();
+function RoomPageInner() {
+  const { roomId: routeRoomId } = useParams<{ roomId: string }>();
+  const navigate = useNavigate();
+  const { session, clearSession } = useSession();
+  const { socket, status } = useSocket();
+
+  // No/mismatched session (e.g. a pasted room URL) — bounce to landing.
+  useEffect(() => {
+    if (!session || session.roomId !== routeRoomId) {
+      navigate('/', { replace: true });
+    }
+  }, [session, routeRoomId, navigate]);
+
+  const {
+    phase,
+    joinError,
+    showRejoinFailedDialog,
+    messages,
+    users,
+    typingUsernames,
+    roomError,
+    clearRoomError,
+    sendMessage,
+    leaveRoom,
+  } = useChatRoom(session);
+
+  const [lightbox, setLightbox] = useState<{ src: string; name: string } | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState(false);
+  const [isRoomIdHidden, setIsRoomIdHidden] = useState(true);
+  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
+  const messageInputRef = useRef<MessageInputHandle>(null);
+  const roomShellRef = useRef<HTMLDivElement>(null);
+  const wasInsideColumnRef = useRef(true);
+
+  const latestMessageId = messages.length > 0 ? messages[messages.length - 1].id : null;
+  useUnreadTitle(latestMessageId);
+
+  // Show a full-screen loading takeover on either of two "away" signals:
+  // (a) the cursor crosses out of the centered 50%-width room column into
+  // the side margins, still inside the page — the primary desktop trigger
+  // — or (b) the cursor leaves the browser viewport entirely, which is the
+  // only signal available when the column is full-width (below `md`, no
+  // margins to cross first) and a more reliable catch-all in general since
+  // a fast mouse movement can exit the window before a mousemove event
+  // lands exactly on the column boundary. Dismissed by the cursor coming
+  // back (over the column, or into the page at all) or by clicking the
+  // overlay.
+  useEffect(() => {
+    function handleMouseMove(event: MouseEvent) {
+      const rect = roomShellRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const isInsideNow = event.clientX >= rect.left && event.clientX <= rect.right;
+
+      if (isInsideNow) {
+        setShowLoadingOverlay(false);
+      } else if (wasInsideColumnRef.current) {
+        // Only fire on the inside -> outside transition, so dismissing via
+        // click while still physically outside doesn't immediately flip
+        // it back on at the next mousemove.
+        setShowLoadingOverlay(true);
+      }
+      wasInsideColumnRef.current = isInsideNow;
+    }
+    function handlePageMouseLeave() {
+      setShowLoadingOverlay(true);
+    }
+    function handlePageMouseEnter() {
+      setShowLoadingOverlay(false);
+    }
+
+    window.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseleave', handlePageMouseLeave);
+    document.addEventListener('mouseenter', handlePageMouseEnter);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseleave', handlePageMouseLeave);
+      document.removeEventListener('mouseenter', handlePageMouseEnter);
+    };
+  }, []);
+
+  const handleCopyRoomId = useCallback(() => {
+    if (!session) return;
+    navigator.clipboard?.writeText(session.roomId).then(
+      () => {
+        setCopyFeedback(true);
+        setTimeout(() => setCopyFeedback(false), 2000);
+      },
+      () => undefined,
+    );
+  }, [session]);
+
+  const handleBackToLanding = useCallback(() => {
+    clearSession();
+    navigate('/');
+  }, [clearSession, navigate]);
+
+  function handleLeave() {
+    leaveRoom();
+    handleBackToLanding();
+  }
+
+  if (!session || session.roomId !== routeRoomId) {
+    return null;
+  }
+
+  const inputDisabled = status !== 'online' || phase !== 'joined';
+  const displayRoomId = isRoomIdHidden ? '•'.repeat(session.roomId.length) : session.roomId;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-100">
-      <div className="rounded-xl border border-slate-800 bg-slate-900 px-8 py-10 text-center shadow-xl">
-        <h1 className="text-2xl font-semibold">Room {roomId}</h1>
-        <p className="mt-2 text-sm text-slate-400">
-          Room page placeholder — chat UI dibangun di Issue #2.
-        </p>
+    <div className="flex h-screen flex-col bg-canvas text-ink">
+      <ConnectionBanner status={status} />
+
+      {/* Room shell: full width on mobile, pinned to a centered 50%-width
+          column from the md breakpoint up — a narrower reading column reads
+          better than an edge-to-edge chat on wide desktop viewports. */}
+      <div
+        ref={roomShellRef}
+        className="mx-auto flex min-h-0 w-full flex-1 flex-col md:w-1/2 md:min-w-[420px] md:border-x md:border-hairline"
+      >
+        {/* sub-nav-frosted: parchment @ ~80% + blur, category name left,
+            primary action right — Apple's product-page sub-nav pattern. */}
+        <header className="flex flex-none items-center justify-between gap-3 border-b border-hairline bg-parchment/80 px-4 py-3 backdrop-blur-md">
+          <div className="flex min-w-0 items-center gap-1">
+            <h1 className="truncate text-[21px] font-semibold leading-tight tracking-[0.231px] text-ink">
+              {displayRoomId}
+            </h1>
+            <IconButton label="Copy Room ID" onClick={handleCopyRoomId} className="h-9 w-9">
+              <Icon name={copyFeedback ? 'check' : 'copy'} className="h-4 w-4" />
+            </IconButton>
+            <IconButton
+              label={isRoomIdHidden ? 'Show Room ID' : 'Hide Room ID'}
+              onClick={() => setIsRoomIdHidden((hidden) => !hidden)}
+              className="h-9 w-9"
+            >
+              <Icon name={isRoomIdHidden ? 'eyeOff' : 'eye'} className="h-4 w-4" />
+            </IconButton>
+          </div>
+          <div className="flex flex-none items-center gap-2">
+            <IconButton label="Open user list" className="h-9 w-9 md:hidden" onClick={() => setDrawerOpen(true)}>
+              <Icon name="users" className="h-5 w-5" />
+            </IconButton>
+            <Button variant="danger" onClick={handleLeave}>
+              <Icon name="logout" className="h-4 w-4" />
+              Leave
+            </Button>
+          </div>
+        </header>
+
+        <div className="flex min-h-0 flex-1">
+          <div
+            className="flex min-w-0 flex-1 flex-col"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              event.preventDefault();
+              const file = event.dataTransfer.files?.[0];
+              if (file) messageInputRef.current?.addFile(file);
+            }}
+          >
+            {phase === 'joining' && (
+              <div className="flex flex-1 items-center justify-center text-sm text-ink-muted-48">
+                Joining room...
+              </div>
+            )}
+
+            {phase === 'failed' && (
+              <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
+                <p className="font-sans text-sm text-ink">{joinError ?? 'Failed to join the room.'}</p>
+                <Button onClick={handleBackToLanding}>Back to Landing</Button>
+              </div>
+            )}
+
+            {phase === 'joined' && (
+              <>
+                {users.length <= 1 && (
+                  <div className="mx-3 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-[18px] border border-hairline bg-canvas px-4 py-2.5 font-sans text-sm text-ink sm:mx-4">
+                    <span>
+                      You're the only one here. Invite others with Room ID{' '}
+                      <span className="font-semibold text-primary">{displayRoomId}</span>.
+                    </span>
+                    <Button variant="secondary" onClick={handleCopyRoomId} className="flex-none">
+                      <Icon name="copy" className="h-4 w-4" />
+                      {copyFeedback ? 'Copied!' : 'Copy'}
+                    </Button>
+                  </div>
+                )}
+                <MessageList
+                  messages={messages}
+                  selfUsername={session.username}
+                  onImageClick={(src, name) => setLightbox({ src, name })}
+                />
+                <TypingIndicator usernames={typingUsernames} />
+                <MessageInput
+                  ref={messageInputRef}
+                  socket={socket}
+                  disabled={inputDisabled}
+                  sendMessage={sendMessage}
+                />
+              </>
+            )}
+          </div>
+
+          <aside className="hidden w-60 flex-none border-l border-hairline md:block">
+            <UserList users={users} selfUsername={session.username} />
+          </aside>
+        </div>
       </div>
-    </main>
+
+      {drawerOpen && (
+        <div className="fixed inset-0 z-40 flex md:hidden">
+          <div className="flex-1 bg-black/40" onClick={() => setDrawerOpen(false)} aria-hidden="true" />
+          <div className="w-64 flex-none border-l border-hairline bg-canvas">
+            <div className="flex items-center justify-between px-2 py-2">
+              <span className="px-2 text-xs font-semibold text-ink-muted-48">Participants</span>
+              <IconButton label="Close user list" onClick={() => setDrawerOpen(false)} className="h-9 w-9">
+                <Icon name="x" className="h-4 w-4" />
+              </IconButton>
+            </div>
+            <UserList users={users} selfUsername={session.username} />
+          </div>
+        </div>
+      )}
+
+      {lightbox && (
+        <Lightbox src={lightbox.src} name={lightbox.name} onClose={() => setLightbox(null)} />
+      )}
+
+      {roomError && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex justify-center px-4">
+          <div className="pointer-events-auto w-full max-w-sm">
+            <Toast message={roomError.message} onDismiss={clearRoomError} />
+          </div>
+        </div>
+      )}
+
+      {showRejoinFailedDialog && (
+        <Dialog title="Couldn't reconnect" actions={<Button onClick={handleBackToLanding}>Back to Landing</Button>}>
+          Your session couldn't be restored automatically (e.g. the username is already taken by a stale session). Please go back to the landing page and join again.
+        </Dialog>
+      )}
+
+      {showLoadingOverlay && (
+        <LoadingScreen autoDismissMs={0} onDismiss={() => setShowLoadingOverlay(false)} />
+      )}
+    </div>
+  );
+}
+
+export function RoomPage() {
+  return (
+    <SessionProvider>
+      <SocketProvider>
+        <RoomPageInner />
+      </SocketProvider>
+    </SessionProvider>
   );
 }

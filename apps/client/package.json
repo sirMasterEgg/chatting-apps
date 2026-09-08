@@ -12,6 +12,8 @@
   "dependencies": {
     "@shared/root": "*",
     "@tanstack/react-query": "^5.62.0",
+    "linkify-it": "^5.0.0",
+    "linkify-react": "^4.1.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.28.0",
