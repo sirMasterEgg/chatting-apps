@@ -46,7 +46,8 @@ function RoomPageInner() {
   const [lightbox, setLightbox] = useState<{ src: string; name: string } | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState(false);
-  const [isMouseOutsideColumn, setIsMouseOutsideColumn] = useState(false);
+  const [isRoomIdHidden, setIsRoomIdHidden] = useState(false);
+  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   const messageInputRef = useRef<MessageInputHandle>(null);
   const roomShellRef = useRef<HTMLDivElement>(null);
   const wasInsideColumnRef = useRef(true);
@@ -54,15 +55,16 @@ function RoomPageInner() {
   const latestMessageId = messages.length > 0 ? messages[messages.length - 1].id : null;
   useUnreadTitle(latestMessageId);
 
-  // Show a full-screen loading takeover the moment the cursor crosses out of
-  // the centered 50%-width room column into the side margins, and dismiss it
-  // as soon as the cursor comes back over the column (or the overlay is
-  // clicked). Tracked via raw cursor coordinates against the column's
-  // bounding rect rather than mouseenter/leave on the column element itself,
-  // since once the overlay is showing it sits on top of that element and
-  // would otherwise swallow the very re-entry event meant to dismiss it.
-  // Below the `md` breakpoint the column is full-width (no margins to leave
-  // into), so this naturally never triggers on mobile.
+  // Show a full-screen loading takeover on either of two "away" signals:
+  // (a) the cursor crosses out of the centered 50%-width room column into
+  // the side margins, still inside the page — the primary desktop trigger
+  // — or (b) the cursor leaves the browser viewport entirely, which is the
+  // only signal available when the column is full-width (below `md`, no
+  // margins to cross first) and a more reliable catch-all in general since
+  // a fast mouse movement can exit the window before a mousemove event
+  // lands exactly on the column boundary. Dismissed by the cursor coming
+  // back (over the column, or into the page at all) or by clicking the
+  // overlay.
   useEffect(() => {
     function handleMouseMove(event: MouseEvent) {
       const rect = roomShellRef.current?.getBoundingClientRect();
@@ -70,18 +72,30 @@ function RoomPageInner() {
       const isInsideNow = event.clientX >= rect.left && event.clientX <= rect.right;
 
       if (isInsideNow) {
-        setIsMouseOutsideColumn(false);
+        setShowLoadingOverlay(false);
       } else if (wasInsideColumnRef.current) {
         // Only fire on the inside -> outside transition, so dismissing via
         // click while still physically outside doesn't immediately flip
         // it back on at the next mousemove.
-        setIsMouseOutsideColumn(true);
+        setShowLoadingOverlay(true);
       }
       wasInsideColumnRef.current = isInsideNow;
     }
+    function handlePageMouseLeave() {
+      setShowLoadingOverlay(true);
+    }
+    function handlePageMouseEnter() {
+      setShowLoadingOverlay(false);
+    }
 
     window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseleave', handlePageMouseLeave);
+    document.addEventListener('mouseenter', handlePageMouseEnter);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseleave', handlePageMouseLeave);
+      document.removeEventListener('mouseenter', handlePageMouseEnter);
+    };
   }, []);
 
   const handleCopyRoomId = useCallback(() => {
@@ -110,6 +124,7 @@ function RoomPageInner() {
   }
 
   const inputDisabled = status !== 'online' || phase !== 'joined';
+  const displayRoomId = isRoomIdHidden ? '•'.repeat(session.roomId.length) : session.roomId;
 
   return (
     <div className="flex h-screen flex-col bg-canvas text-ink">
@@ -127,10 +142,17 @@ function RoomPageInner() {
         <header className="flex flex-none items-center justify-between gap-3 border-b border-hairline bg-parchment/80 px-4 py-3 backdrop-blur-md">
           <div className="flex min-w-0 items-center gap-1">
             <h1 className="truncate text-[21px] font-semibold leading-tight tracking-[0.231px] text-ink">
-              {session.roomId}
+              {displayRoomId}
             </h1>
             <IconButton label="Copy Room ID" onClick={handleCopyRoomId} className="h-9 w-9">
               <Icon name={copyFeedback ? 'check' : 'copy'} className="h-4 w-4" />
+            </IconButton>
+            <IconButton
+              label={isRoomIdHidden ? 'Show Room ID' : 'Hide Room ID'}
+              onClick={() => setIsRoomIdHidden((hidden) => !hidden)}
+              className="h-9 w-9"
+            >
+              <Icon name={isRoomIdHidden ? 'eyeOff' : 'eye'} className="h-4 w-4" />
             </IconButton>
           </div>
           <div className="flex flex-none items-center gap-2">
@@ -173,7 +195,7 @@ function RoomPageInner() {
                   <div className="mx-3 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-[18px] border border-hairline bg-canvas px-4 py-2.5 font-sans text-sm text-ink sm:mx-4">
                     <span>
                       You're the only one here. Invite others with Room ID{' '}
-                      <span className="font-semibold text-primary">{session.roomId}</span>.
+                      <span className="font-semibold text-primary">{displayRoomId}</span>.
                     </span>
                     <Button variant="secondary" onClick={handleCopyRoomId} className="flex-none">
                       <Icon name="copy" className="h-4 w-4" />
@@ -236,8 +258,8 @@ function RoomPageInner() {
         </Dialog>
       )}
 
-      {isMouseOutsideColumn && (
-        <LoadingScreen autoDismissMs={0} onDismiss={() => setIsMouseOutsideColumn(false)} />
+      {showLoadingOverlay && (
+        <LoadingScreen autoDismissMs={0} onDismiss={() => setShowLoadingOverlay(false)} />
       )}
     </div>
   );
