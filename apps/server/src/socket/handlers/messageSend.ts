@@ -13,7 +13,7 @@ function replyRateLimited(socket: AppSocket, ack: SendAck): void {
   ack({ ok: false, error: 'RATE_LIMITED' });
   socket.emit('room:error', {
     code: 'RATE_LIMITED',
-    message: 'Terlalu banyak pesan dalam waktu singkat, coba lagi sebentar lagi.',
+    message: 'You are sending messages too fast, please slow down.',
   });
   registerViolation(socket);
 }

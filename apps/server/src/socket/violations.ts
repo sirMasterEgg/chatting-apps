@@ -17,7 +17,7 @@ export function registerViolation(socket: AppSocket): void {
   if (next >= MAX_CONSECUTIVE_VIOLATIONS) {
     socket.emit('room:error', {
       code: 'TOO_MANY_VIOLATIONS',
-      message: 'Terlalu banyak pelanggaran berturut-turut, koneksi diputus.',
+      message: 'Too many consecutive violations; disconnecting.',
     });
     socket.disconnect(true);
   }

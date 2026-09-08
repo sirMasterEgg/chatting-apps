@@ -7,9 +7,9 @@ import { friendlyErrorMessage } from '@/lib/errors';
 import type { RoomJoinPhase, Session } from '@/types/chat';
 
 const PRIVACY_NOTICE =
-  'Pesan tidak disimpan di mana pun. Riwayat sebelum kamu bergabung tidak tersedia.';
+  "Messages aren't stored anywhere. History from before you joined isn't available.";
 const RECONNECTED_NOTICE =
-  'Koneksi tersambung kembali. Pesan selama terputus tidak dapat dipulihkan.';
+  "Reconnected. Messages sent while you were disconnected can't be recovered.";
 
 interface LocationState {
   initialUsers?: User[];
@@ -86,7 +86,7 @@ export function useChatRoom(session: Session | null): UseChatRoomResult {
             appendMessage(makeLocalSystemMessage(session!.roomId, RECONNECTED_NOTICE));
           }
         } else {
-          setJoinError(res.error);
+          setJoinError(friendlyErrorMessage(res.error));
           if (isReconnect || hasJoinedOnceRef.current) {
             setShowRejoinFailedDialog(true);
           } else {
@@ -138,7 +138,7 @@ export function useChatRoom(session: Session | null): UseChatRoomResult {
           if (res.ok) {
             resolve();
           } else {
-            reject(new Error(res.error ? friendlyErrorMessage(res.error) : 'Pesan gagal terkirim.'));
+            reject(new Error(res.error ? friendlyErrorMessage(res.error) : 'Message failed to send.'));
           }
         });
       }),

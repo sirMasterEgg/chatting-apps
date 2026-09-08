@@ -92,17 +92,17 @@ function RoomPageInner() {
             <h1 className="truncate text-[21px] font-semibold leading-tight tracking-[0.231px] text-ink">
               {session.roomId}
             </h1>
-            <IconButton label="Salin Room ID" onClick={handleCopyRoomId} className="h-9 w-9">
+            <IconButton label="Copy Room ID" onClick={handleCopyRoomId} className="h-9 w-9">
               <Icon name={copyFeedback ? 'check' : 'copy'} className="h-4 w-4" />
             </IconButton>
           </div>
           <div className="flex flex-none items-center gap-2">
-            <IconButton label="Buka daftar user" className="h-9 w-9 md:hidden" onClick={() => setDrawerOpen(true)}>
+            <IconButton label="Open user list" className="h-9 w-9 md:hidden" onClick={() => setDrawerOpen(true)}>
               <Icon name="users" className="h-5 w-5" />
             </IconButton>
             <Button variant="danger" onClick={handleLeave}>
               <Icon name="logout" className="h-4 w-4" />
-              Keluar
+              Leave
             </Button>
           </div>
         </header>
@@ -119,14 +119,14 @@ function RoomPageInner() {
           >
             {phase === 'joining' && (
               <div className="flex flex-1 items-center justify-center text-sm text-ink-muted-48">
-                Bergabung ke room...
+                Joining room...
               </div>
             )}
 
             {phase === 'failed' && (
               <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-                <p className="font-sans text-sm text-ink">{joinError ?? 'Gagal bergabung ke room.'}</p>
-                <Button onClick={handleBackToLanding}>Kembali ke Landing</Button>
+                <p className="font-sans text-sm text-ink">{joinError ?? 'Failed to join the room.'}</p>
+                <Button onClick={handleBackToLanding}>Back to Landing</Button>
               </div>
             )}
 
@@ -135,12 +135,12 @@ function RoomPageInner() {
                 {users.length <= 1 && (
                   <div className="mx-3 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-[18px] border border-hairline bg-canvas px-4 py-2.5 font-sans text-sm text-ink sm:mx-4">
                     <span>
-                      Kamu sendirian di sini. Ajak orang lain pakai Room ID{' '}
+                      You're the only one here. Invite others with Room ID{' '}
                       <span className="font-semibold text-primary">{session.roomId}</span>.
                     </span>
                     <Button variant="secondary" onClick={handleCopyRoomId} className="flex-none">
                       <Icon name="copy" className="h-4 w-4" />
-                      {copyFeedback ? 'Tersalin!' : 'Salin'}
+                      {copyFeedback ? 'Copied!' : 'Copy'}
                     </Button>
                   </div>
                 )}
@@ -171,8 +171,8 @@ function RoomPageInner() {
           <div className="flex-1 bg-black/40" onClick={() => setDrawerOpen(false)} aria-hidden="true" />
           <div className="w-64 flex-none border-l border-hairline bg-canvas">
             <div className="flex items-center justify-between px-2 py-2">
-              <span className="px-2 text-xs font-semibold text-ink-muted-48">Peserta</span>
-              <IconButton label="Tutup daftar user" onClick={() => setDrawerOpen(false)} className="h-9 w-9">
+              <span className="px-2 text-xs font-semibold text-ink-muted-48">Participants</span>
+              <IconButton label="Close user list" onClick={() => setDrawerOpen(false)} className="h-9 w-9">
                 <Icon name="x" className="h-4 w-4" />
               </IconButton>
             </div>
@@ -194,8 +194,8 @@ function RoomPageInner() {
       )}
 
       {showRejoinFailedDialog && (
-        <Dialog title="Gagal tersambung kembali" actions={<Button onClick={handleBackToLanding}>Kembali ke Landing</Button>}>
-          Sesi kamu tidak bisa dipulihkan otomatis (mis. username sudah dipakai sesi lama). Silakan kembali ke landing dan masuk lagi.
+        <Dialog title="Couldn't reconnect" actions={<Button onClick={handleBackToLanding}>Back to Landing</Button>}>
+          Your session couldn't be restored automatically (e.g. the username is already taken by a stale session). Please go back to the landing page and join again.
         </Dialog>
       )}
     </div>

@@ -20,7 +20,7 @@ export function UserList({ users, selfUsername }: UserListProps) {
             <li key={user.id} className="flex items-center gap-2 rounded-[10px] px-2 py-1.5 text-[15px] text-ink">
               <span className="h-2 w-2 flex-none rounded-full bg-primary" aria-hidden="true" />
               <span className="truncate">{user.username}</span>
-              {isSelf && <span className="flex-none text-xs text-ink-muted-48">(kamu)</span>}
+              {isSelf && <span className="flex-none text-xs text-ink-muted-48">(you)</span>}
             </li>
           );
         })}

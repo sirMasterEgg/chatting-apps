@@ -37,12 +37,12 @@ export function Lightbox({ src, name, onClose }: LightboxProps) {
           download={name}
           onClick={(event) => event.stopPropagation()}
           className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-chip/70 text-ink hover:bg-chip focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-focus"
-          aria-label="Unduh gambar"
+          aria-label="Download image"
         >
           <Icon name="download" className="h-5 w-5" />
         </a>
         <IconButton
-          label="Tutup"
+          label="Close"
           onClick={(event) => {
             event.stopPropagation();
             onClose();

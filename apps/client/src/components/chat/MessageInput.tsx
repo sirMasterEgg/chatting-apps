@@ -62,7 +62,7 @@ export const MessageInput = forwardRef<MessageInputHandle, MessageInputProps>(fu
     const hasAttachment = !!draft;
     if (!trimmed && !hasAttachment) return;
     if (draft && !draft.dataUrl) {
-      setSendError('Tunggu file selesai dibaca sebelum mengirim.');
+      setSendError('Wait for the file to finish reading before sending.');
       return;
     }
 
@@ -88,7 +88,7 @@ export const MessageInput = forwardRef<MessageInputHandle, MessageInputProps>(fu
         clearAttachment();
       }
     } catch (err) {
-      setSendError(err instanceof Error ? err.message : 'Pesan gagal terkirim.');
+      setSendError(err instanceof Error ? err.message : 'Message failed to send.');
     } finally {
       setSendPhase(null);
     }
@@ -143,7 +143,7 @@ export const MessageInput = forwardRef<MessageInputHandle, MessageInputProps>(fu
           tabIndex={-1}
         />
         <IconButton
-          label="Lampirkan file"
+          label="Attach file"
           disabled={disabled}
           onClick={() => fileInputRef.current?.click()}
           className="mb-0.5"
@@ -161,8 +161,8 @@ export const MessageInput = forwardRef<MessageInputHandle, MessageInputProps>(fu
           disabled={disabled}
           maxLength={MAX_TEXT_LENGTH}
           rows={1}
-          placeholder={disabled ? 'Menunggu koneksi...' : 'Tulis pesan... (Enter untuk kirim)'}
-          aria-label="Tulis pesan"
+          placeholder={disabled ? 'Waiting for connection...' : 'Write a message... (Enter to send)'}
+          aria-label="Write a message"
           className="max-h-32 min-h-11 flex-1 resize-none rounded-[20px] border border-hairline bg-canvas px-4 py-2.5 font-sans text-[15px] text-ink placeholder:text-ink-muted-48 focus-visible:border-primary focus-visible:outline-none disabled:opacity-50"
         />
 
@@ -171,10 +171,10 @@ export const MessageInput = forwardRef<MessageInputHandle, MessageInputProps>(fu
           onClick={() => void handleSend()}
           disabled={disabled || (!text.trim() && !draft) || sendPhase !== null}
           className="mb-0.5 flex-none"
-          aria-label="Kirim pesan"
+          aria-label="Send message"
         >
           <Icon name="send" className="h-4 w-4" />
-          <span className="hidden sm:inline">Kirim</span>
+          <span className="hidden sm:inline">Send</span>
         </Button>
       </div>
     </div>

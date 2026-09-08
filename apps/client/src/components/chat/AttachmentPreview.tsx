@@ -30,7 +30,7 @@ export function AttachmentPreview({ draft, sendPhase, onCancel }: AttachmentPrev
         {sendPhase === 'sending' ? (
           <div className="mt-1 flex items-center gap-1.5 text-xs text-primary">
             <Spinner className="h-3 w-3" />
-            <span>Mengirim...</span>
+            <span>Sending...</span>
           </div>
         ) : isReading ? (
           <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-parchment">
@@ -42,7 +42,7 @@ export function AttachmentPreview({ draft, sendPhase, onCancel }: AttachmentPrev
         ) : null}
       </div>
       {!isBusy && (
-        <IconButton label="Batalkan lampiran" onClick={onCancel} className="h-8 w-8">
+        <IconButton label="Cancel attachment" onClick={onCancel} className="h-8 w-8">
           <Icon name="x" className="h-4 w-4" />
         </IconButton>
       )}

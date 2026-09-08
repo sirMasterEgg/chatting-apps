@@ -4,9 +4,9 @@ interface TypingIndicatorProps {
 
 function typingText(usernames: string[]): string {
   if (usernames.length === 0) return '';
-  if (usernames.length === 1) return `${usernames[0]} sedang mengetik...`;
-  if (usernames.length === 2) return `${usernames[0]} dan ${usernames[1]} sedang mengetik...`;
-  return `${usernames.length} orang sedang mengetik...`;
+  if (usernames.length === 1) return `${usernames[0]} is typing...`;
+  if (usernames.length === 2) return `${usernames[0]} and ${usernames[1]} are typing...`;
+  return `${usernames.length} people are typing...`;
 }
 
 /** Fixed-height row so its appearance/disappearance never shifts the layout. */

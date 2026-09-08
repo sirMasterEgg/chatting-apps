@@ -26,7 +26,7 @@ export function Toast({ message, onDismiss, tone = 'error', autoDismissMs = 6000
     >
       <Icon name="alert" className="mt-0.5 h-5 w-5 flex-none text-ink" />
       <p className="flex-1 font-sans text-sm text-ink">{message}</p>
-      <IconButton label="Tutup notifikasi" onClick={onDismiss} className="-mr-2 -mt-2 h-8 w-8">
+      <IconButton label="Dismiss notification" onClick={onDismiss} className="-mr-2 -mt-2 h-8 w-8">
         <Icon name="x" className="h-4 w-4" />
       </IconButton>
     </div>

@@ -36,7 +36,7 @@ export function registerRoomJoinHandler(io: AppServer, socket: AppSocket): void 
       ack({ ok: false, error: 'RATE_LIMITED' });
       socket.emit('room:error', {
         code: 'RATE_LIMITED',
-        message: 'Terlalu banyak percobaan join, coba lagi sebentar lagi.',
+        message: 'Too many join attempts, please try again shortly.',
       });
       registerViolation(socket);
       return;
@@ -84,7 +84,7 @@ export function registerRoomJoinHandler(io: AppServer, socket: AppSocket): void 
       roomId,
       kind: 'system',
       author: null,
-      text: `${username} bergabung ke room`,
+      text: `${username} joined the room`,
       sentAt: Date.now(),
     };
     io.to(roomId).emit('message:new', systemMessage);

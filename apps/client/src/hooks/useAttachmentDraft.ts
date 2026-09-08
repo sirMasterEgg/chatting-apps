@@ -78,7 +78,7 @@ export function useAttachmentDraft() {
       reader.onload = () => {
         const result = reader.result;
         if (typeof result !== 'string') {
-          setError('Gagal membaca file. Coba lagi.');
+          setError('Failed to read file. Please try again.');
           clear();
           return;
         }
@@ -87,7 +87,7 @@ export function useAttachmentDraft() {
         );
       };
       reader.onerror = () => {
-        setError('Gagal membaca file. Coba lagi.');
+        setError('Failed to read file. Please try again.');
         clear();
       };
       reader.readAsDataURL(file);
