@@ -14,14 +14,22 @@ import { clearViolations } from './violations.js';
  * the room became empty, roomStore already deleted it - nothing further to
  * broadcast to a room with nobody left in it.
  */
-export function runLeaveFlow(io: AppServer, socket: AppSocket): void {
+export async function runLeaveFlow(io: AppServer, socket: AppSocket): Promise<void> {
   clearJoinIdleTimer(socket.id);
   clearTypingExpiry(socket.id);
-  clearSocketRateLimits(socket.id);
   clearViolations(socket.id);
 
   const result = leaveRoom(socket.id);
-  if (!result) return;
+
+  // Rate-limit cleanup can involve a Redis round trip - kick it off but
+  // don't let it delay the leave broadcast to the rest of the room; just
+  // make sure it's settled before this function itself resolves.
+  const rateLimitCleanup = clearSocketRateLimits(socket.id);
+
+  if (!result) {
+    await rateLimitCleanup;
+    return;
+  }
 
   const { roomId, user, room } = result;
 
@@ -39,4 +47,6 @@ export function runLeaveFlow(io: AppServer, socket: AppSocket): void {
     io.to(roomId).emit('users:update', Array.from(room.users.values()));
     broadcastTypingUpdate(io, room, socket.id);
   }
+
+  await rateLimitCleanup;
 }

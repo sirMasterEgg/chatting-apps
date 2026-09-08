@@ -19,7 +19,7 @@ function replyRateLimited(socket: AppSocket, ack: SendAck): void {
 }
 
 export function registerMessageSendHandler(io: AppServer, socket: AppSocket): void {
-  socket.on('message:send', (payload, ack) => {
+  socket.on('message:send', async (payload, ack) => {
     if (typeof ack !== 'function') return;
 
     const roomId = socket.data.roomId;
@@ -44,7 +44,7 @@ export function registerMessageSendHandler(io: AppServer, socket: AppSocket): vo
     let messagePayload: Pick<ChatMessage, 'kind' | 'text' | 'attachment'>;
 
     if (kind === 'text') {
-      if (!consumeTextToken(socket.id)) {
+      if (!(await consumeTextToken(socket.id))) {
         replyRateLimited(socket, ack);
         return;
       }
@@ -55,7 +55,7 @@ export function registerMessageSendHandler(io: AppServer, socket: AppSocket): vo
       }
       messagePayload = { kind: 'text', text: cleanText };
     } else {
-      if (!consumeAttachmentToken(socket.id)) {
+      if (!(await consumeAttachmentToken(socket.id))) {
         replyRateLimited(socket, ack);
         return;
       }

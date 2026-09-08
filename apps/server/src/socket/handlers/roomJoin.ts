@@ -17,7 +17,7 @@ import { clearViolations, registerViolation } from '../violations.js';
 const ALLOWED_KEYS = ['roomId', 'username'] as const;
 
 export function registerRoomJoinHandler(io: AppServer, socket: AppSocket): void {
-  socket.on('room:join', (payload, ack) => {
+  socket.on('room:join', async (payload, ack) => {
     if (typeof ack !== 'function') return;
 
     const data: unknown = payload;
@@ -32,13 +32,20 @@ export function registerRoomJoinHandler(io: AppServer, socket: AppSocket): void 
     }
 
     const ip = socket.handshake.address;
-    if (!consumeJoinToken(ip)) {
+    if (!(await consumeJoinToken(ip))) {
       ack({ ok: false, error: 'RATE_LIMITED' });
       socket.emit('room:error', {
         code: 'RATE_LIMITED',
         message: 'Too many join attempts, please try again shortly.',
       });
       registerViolation(socket);
+      return;
+    }
+
+    // Re-check after the async rate-limit round trip in case another
+    // room:join for this same socket raced ahead while we were awaiting.
+    if (socket.data.roomId) {
+      ack({ ok: false, error: 'ALREADY_JOINED' });
       return;
     }
 

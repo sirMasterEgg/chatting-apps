@@ -62,3 +62,12 @@ Pekerjaan dibagi menjadi tiga tahap (lihat `docs/issue-1.md`, `docs/issue-2.md`,
 2. **Fitur dasar** — join room, chat teks/gambar/file, daftar user online.
 3. **Fitur tambahan** — typing indicator, preview/lightbox gambar, reconnect,
    rate limiting, dan hardening server.
+
+## Deployment
+
+Task orchestration lewat [Turborepo](https://turborepo.dev) (`turbo.json`).
+Client (`apps/client`) deploy ke Vercel; server (`apps/server`) butuh host
+yang menjalankan proses Node persisten (Docker image tersedia) karena
+statenya di memori dan koneksinya WebSocket persisten — lihat
+[`DEPLOYMENT.md`](./DEPLOYMENT.md) untuk detail lengkap, termasuk opsi
+Redis (Vercel Marketplace / Upstash) untuk rate limiting lintas instance.
