@@ -63,12 +63,6 @@ function LandingPageInner() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-canvas px-4 py-16 text-ink">
-      <div className="mb-10 flex flex-col items-center text-center">
-        <p className="max-w-sm font-sans text-lg font-normal leading-snug text-ink-muted-80">
-          No sign-up, no history. Talk, then it's gone.
-        </p>
-      </div>
-
       <div className="w-full max-w-sm rounded-[18px] border border-hairline bg-canvas p-6">
         <p className="text-sm font-semibold text-ink">Join a room</p>
 
