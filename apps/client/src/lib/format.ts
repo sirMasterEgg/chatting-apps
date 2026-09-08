@@ -24,3 +24,15 @@ export function formatTime(epochMs: number): string {
     minute: '2-digit',
   });
 }
+
+/**
+ * Truncates a long filename in the middle, always keeping the last `keepEnd`
+ * characters (which include the extension) visible so the file type stays
+ * recognizable.
+ */
+export function truncateFilename(name: string, keepEnd = 10, maxLength = 28): string {
+  if (name.length <= maxLength) return name;
+  const end = name.slice(-keepEnd);
+  const start = name.slice(0, Math.max(0, maxLength - keepEnd - 1));
+  return `${start}…${end}`;
+}

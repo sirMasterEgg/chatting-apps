@@ -1,9 +1,10 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { SessionProvider, useSession } from '@/context/SessionContext';
+import { friendlyErrorMessage } from '@/lib/errors';
 import { getSocket } from '@/lib/socket';
-import { validateRoomId, validateUsername } from '@/lib/validation';
+import { suggestUsername, validateRoomId, validateUsername } from '@/lib/validation';
 
 function LandingPageInner() {
   const navigate = useNavigate();
@@ -14,7 +15,9 @@ function LandingPageInner() {
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [roomIdError, setRoomIdError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [suggestion, setSuggestion] = useState<string | null>(null);
   const [isJoining, setIsJoining] = useState(false);
+  const usernameRef = useRef<HTMLInputElement>(null);
 
   function handleCreateRoom() {
     setRoomId(crypto.randomUUID().slice(0, 8));
@@ -30,6 +33,7 @@ function LandingPageInner() {
     setUsernameError(uError);
     setRoomIdError(rError);
     setFormError(null);
+    setSuggestion(null);
     if (uError || rError) return;
 
     setIsJoining(true);
@@ -44,10 +48,12 @@ function LandingPageInner() {
       }
 
       socket.disconnect();
-      if (/username|dipakai|taken/i.test(res.error)) {
-        setUsernameError(res.error);
+      if (/username|taken/i.test(res.error)) {
+        setUsernameError(friendlyErrorMessage(res.error));
+        setSuggestion(suggestUsername(trimmedUsername));
+        usernameRef.current?.focus();
       } else {
-        setFormError(res.error);
+        setFormError(friendlyErrorMessage(res.error));
       }
     });
   }
@@ -56,41 +62,61 @@ function LandingPageInner() {
     validateUsername(username.trim()) !== null || validateRoomId(roomId.trim()) !== null;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-slate-100">
-      <div className="w-full max-w-sm rounded-xl border border-slate-800 bg-slate-900 p-8 shadow-xl">
-        <h1 className="text-2xl font-semibold">Realtime Chat</h1>
-        <p className="mt-1 text-sm text-slate-400">Tanpa daftar, tanpa riwayat. Ngobrol, lalu hilang.</p>
+    <main className="flex min-h-screen flex-col items-center justify-center bg-canvas px-4 py-16 text-ink">
+      <div className="w-full max-w-sm rounded-[18px] border border-hairline bg-canvas p-6">
+        <p className="text-sm font-semibold text-ink">Join a room</p>
 
-        <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
+        <form className="mt-5 space-y-5" onSubmit={handleSubmit} noValidate>
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-slate-300">
+            <label htmlFor="username" className="block text-xs text-ink-muted-48">
               Username
             </label>
             <input
               id="username"
+              ref={usernameRef}
               value={username}
               onChange={(event) => {
                 setUsername(event.target.value);
                 setUsernameError(null);
+                setSuggestion(null);
               }}
               autoComplete="off"
               autoFocus
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400"
+              className="mt-1.5 w-full rounded-full border border-hairline bg-canvas px-4 py-2.5 font-sans text-[15px] text-ink focus-visible:border-primary focus-visible:outline-none"
               aria-invalid={!!usernameError}
               aria-describedby={usernameError ? 'username-error' : undefined}
             />
             {usernameError && (
-              <p id="username-error" role="alert" className="mt-1 text-xs text-rose-400">
+              <p id="username-error" role="alert" className="mt-1.5 px-1 font-sans text-xs text-ink-muted-80">
                 {usernameError}
+                {suggestion && (
+                  <>
+                    {' '}
+                    Try{' '}
+                    <button
+                      type="button"
+                      className="text-primary underline underline-offset-2 hover:text-primary-focus focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-focus"
+                      onClick={() => {
+                        setUsername(suggestion);
+                        setUsernameError(null);
+                        setSuggestion(null);
+                        usernameRef.current?.focus();
+                      }}
+                    >
+                      {suggestion}
+                    </button>
+                    ?
+                  </>
+                )}
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor="roomId" className="block text-sm font-medium text-slate-300">
+            <label htmlFor="roomId" className="block text-xs text-ink-muted-48">
               Room ID
             </label>
-            <div className="mt-1 flex gap-2">
+            <div className="mt-1.5 flex gap-2">
               <input
                 id="roomId"
                 value={roomId}
@@ -99,7 +125,7 @@ function LandingPageInner() {
                   setRoomIdError(null);
                 }}
                 autoComplete="off"
-                className="w-full min-w-0 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400"
+                className="w-full min-w-0 rounded-full border border-hairline bg-canvas px-4 py-2.5 font-sans text-[15px] text-ink focus-visible:border-primary focus-visible:outline-none"
                 aria-invalid={!!roomIdError}
                 aria-describedby={roomIdError ? 'roomid-error' : undefined}
               />
@@ -109,24 +135,24 @@ function LandingPageInner() {
                 onClick={handleCreateRoom}
                 className="flex-none whitespace-nowrap"
               >
-                Buat Room Baru
+                New Room
               </Button>
             </div>
             {roomIdError && (
-              <p id="roomid-error" role="alert" className="mt-1 text-xs text-rose-400">
+              <p id="roomid-error" role="alert" className="mt-1.5 px-1 font-sans text-xs text-ink-muted-80">
                 {roomIdError}
               </p>
             )}
           </div>
 
           {formError && (
-            <p role="alert" className="rounded-lg border border-rose-900 bg-rose-950/60 px-3 py-2 text-sm text-rose-200">
+            <p role="alert" className="rounded-[14px] border border-hairline bg-parchment px-3 py-2 font-sans text-sm text-ink">
               {formError}
             </p>
           )}
 
           <Button type="submit" className="w-full" disabled={isJoining || isFormInvalid}>
-            {isJoining ? 'Menghubungkan...' : 'Masuk'}
+            {isJoining ? 'Connecting...' : 'Join'}
           </Button>
         </form>
       </div>

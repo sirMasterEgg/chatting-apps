@@ -9,6 +9,8 @@ export interface Room {
   id: string;
   users: Map<string, User>; // key: socket.id
   createdAt: number;
+  /** socket ids currently marked as "typing"; TTL/expiry is managed by the socket layer. */
+  typingUsers: Set<string>;
 }
 
 export interface LeaveResult {
@@ -26,7 +28,7 @@ export function joinRoom(roomId: string, user: User): { room: Room; isNewRoom: b
   let isNewRoom = false;
 
   if (!room) {
-    room = { id: roomId, users: new Map(), createdAt: Date.now() };
+    room = { id: roomId, users: new Map(), createdAt: Date.now(), typingUsers: new Set() };
     rooms.set(roomId, room);
     isNewRoom = true;
   }
@@ -51,6 +53,7 @@ export function leaveRoom(socketId: string): LeaveResult | null {
 
   const user = room.users.get(socketId);
   room.users.delete(socketId);
+  room.typingUsers.delete(socketId);
 
   if (!user) return null;
 
@@ -80,4 +83,28 @@ export function isUsernameTaken(roomId: string, username: string): boolean {
 export function getRoomOfSocket(socketId: string): Room | undefined {
   const roomId = socketRoomIndex.get(socketId);
   return roomId ? rooms.get(roomId) : undefined;
+}
+
+export function roomExists(roomId: string): boolean {
+  return rooms.has(roomId);
+}
+
+export function getRoomUserCount(roomId: string): number {
+  return rooms.get(roomId)?.users.size ?? 0;
+}
+
+export function getRoomCount(): number {
+  return rooms.size;
+}
+
+export function addTypingUser(socketId: string): Room | undefined {
+  const room = getRoomOfSocket(socketId);
+  room?.typingUsers.add(socketId);
+  return room;
+}
+
+export function removeTypingUser(socketId: string): Room | undefined {
+  const room = getRoomOfSocket(socketId);
+  room?.typingUsers.delete(socketId);
+  return room;
 }

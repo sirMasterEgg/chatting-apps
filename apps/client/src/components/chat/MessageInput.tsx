@@ -1,94 +1,98 @@
-import { useCallback, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type ClipboardEvent,
+  type KeyboardEvent,
+} from 'react';
 import type { Attachment, MessageKind } from '@shared/types';
 import { MAX_TEXT_LENGTH } from '@shared/constants';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { IconButton } from '@/components/ui/IconButton';
-import { attachmentKindFromMime, validateAttachmentFile } from '@/lib/validation';
+import { useAttachmentDraft } from '@/hooks/useAttachmentDraft';
+import { useTypingEmitter } from '@/hooks/useTypingEmitter';
+import type { AppSocket } from '@/lib/socket';
+import type { SendPhase } from '@/types/chat';
+import { AttachmentPreview } from './AttachmentPreview';
 
-interface PendingAttachment {
-  name: string;
-  mimeType: string;
-  size: number;
-  dataUrl: string;
-  kind: 'image' | 'file';
+export interface MessageInputHandle {
+  addFile: (file: File) => void;
 }
 
 interface MessageInputProps {
+  socket: AppSocket;
   disabled: boolean;
   sendMessage: (payload: { kind: MessageKind; text?: string; attachment?: Attachment }) => Promise<void>;
 }
 
-export function MessageInput({ disabled, sendMessage }: MessageInputProps) {
+export const MessageInput = forwardRef<MessageInputHandle, MessageInputProps>(function MessageInput(
+  { socket, disabled, sendMessage },
+  ref,
+) {
   const [text, setText] = useState('');
-  const [pendingFile, setPendingFile] = useState<PendingAttachment | null>(null);
-  const [isSending, setIsSending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [sendPhase, setSendPhase] = useState<SendPhase>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { draft, error: attachError, selectFile, clear: clearAttachment } = useAttachmentDraft();
+  const { notifyTyping, stopTyping } = useTypingEmitter(socket);
 
-  const readFile = useCallback((file: File) => {
-    setError(null);
-    const validationError = validateAttachmentFile(file);
-    if (validationError) {
-      setError(validationError);
+  useImperativeHandle(ref, () => ({ addFile: selectFile }), [selectFile]);
+
+  const handleTextChange = useCallback(
+    (event: ChangeEvent<HTMLTextAreaElement>) => {
+      const value = event.target.value;
+      setText(value);
+      if (value.trim()) {
+        notifyTyping();
+      } else {
+        stopTyping();
+      }
+    },
+    [notifyTyping, stopTyping],
+  );
+
+  const handleSend = useCallback(async () => {
+    if (disabled || sendPhase) return;
+    const trimmed = text.trim();
+    const hasAttachment = !!draft;
+    if (!trimmed && !hasAttachment) return;
+    if (draft && !draft.dataUrl) {
+      setSendError('Wait for the file to finish reading before sending.');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result !== 'string') {
-        setError('Gagal membaca file. Coba lagi.');
-        return;
-      }
-      setPendingFile({
-        name: file.name,
-        mimeType: file.type || 'application/octet-stream',
-        size: file.size,
-        dataUrl: result,
-        kind: attachmentKindFromMime(file.type),
-      });
-    };
-    reader.onerror = () => setError('Gagal membaca file. Coba lagi.');
-    reader.readAsDataURL(file);
-  }, []);
+    stopTyping();
+    setSendError(null);
 
-  const handleFileInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (file) readFile(file);
-  };
-
-  const handleSend = useCallback(async () => {
-    if (disabled || isSending) return;
-    const trimmed = text.trim();
-    if (!trimmed && !pendingFile) return;
-
-    setIsSending(true);
-    setError(null);
     try {
       if (trimmed) {
         await sendMessage({ kind: 'text', text: trimmed });
         setText('');
       }
-      if (pendingFile) {
+      if (draft && draft.dataUrl) {
+        setSendPhase('sending');
         await sendMessage({
-          kind: pendingFile.kind,
+          kind: draft.kind,
           attachment: {
-            name: pendingFile.name,
-            mimeType: pendingFile.mimeType,
-            size: pendingFile.size,
-            dataUrl: pendingFile.dataUrl,
+            name: draft.name,
+            mimeType: draft.mimeType,
+            size: draft.size,
+            dataUrl: draft.dataUrl,
           },
         });
-        setPendingFile(null);
+        clearAttachment();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Pesan gagal terkirim.');
+      setSendError(err instanceof Error ? err.message : 'Message failed to send.');
     } finally {
-      setIsSending(false);
+      setSendPhase(null);
     }
-  }, [disabled, isSending, text, pendingFile, sendMessage]);
+  }, [disabled, sendPhase, text, draft, stopTyping, sendMessage, clearAttachment]);
 
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === 'Enter' && !event.shiftKey) {
@@ -97,21 +101,35 @@ export function MessageInput({ disabled, sendMessage }: MessageInputProps) {
     }
   }
 
+  function handleFileInputChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (file) selectFile(file);
+    event.target.value = '';
+  }
+
+  function handlePaste(event: ClipboardEvent<HTMLTextAreaElement>) {
+    const item = Array.from(event.clipboardData.items).find((entry) => entry.kind === 'file');
+    if (!item) return;
+    const file = item.getAsFile();
+    if (file) {
+      event.preventDefault();
+      selectFile(file);
+    }
+  }
+
+  const displayedError = sendError ?? attachError;
+
   return (
-    <div className="flex-none border-t border-slate-800 bg-slate-900/60 px-3 py-3 sm:px-4">
-      {pendingFile && (
-        <div className="mb-2 flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-slate-300">
-          <Icon name={pendingFile.kind === 'image' ? 'image' : 'file'} className="h-4 w-4 flex-none" />
-          <span className="min-w-0 flex-1 truncate">{pendingFile.name}</span>
-          <IconButton label="Batalkan lampiran" onClick={() => setPendingFile(null)} className="h-6 w-6">
-            <Icon name="x" className="h-3.5 w-3.5" />
-          </IconButton>
+    <div className="flex-none border-t border-hairline bg-canvas px-3 py-3 sm:px-4">
+      {draft && (
+        <div className="mb-2">
+          <AttachmentPreview draft={draft} sendPhase={sendPhase} onCancel={clearAttachment} />
         </div>
       )}
 
-      {error && (
-        <p role="alert" className="mb-2 text-xs text-rose-400">
-          {error}
+      {displayedError && (
+        <p role="alert" className="mb-2 text-xs text-ink-muted-80">
+          {displayedError}
         </p>
       )}
 
@@ -125,7 +143,7 @@ export function MessageInput({ disabled, sendMessage }: MessageInputProps) {
           tabIndex={-1}
         />
         <IconButton
-          label="Lampirkan file"
+          label="Attach file"
           disabled={disabled}
           onClick={() => fileInputRef.current?.click()}
           className="mb-0.5"
@@ -134,28 +152,31 @@ export function MessageInput({ disabled, sendMessage }: MessageInputProps) {
         </IconButton>
 
         <textarea
+          ref={textareaRef}
           value={text}
-          onChange={(event) => setText(event.target.value)}
+          onChange={handleTextChange}
           onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
+          onBlur={stopTyping}
           disabled={disabled}
           maxLength={MAX_TEXT_LENGTH}
           rows={1}
-          placeholder={disabled ? 'Menunggu koneksi...' : 'Tulis pesan... (Enter untuk kirim)'}
-          aria-label="Tulis pesan"
-          className="max-h-32 min-h-[2.5rem] flex-1 resize-none rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400 disabled:opacity-60"
+          placeholder={disabled ? 'Waiting for connection...' : 'Write a message... (Enter to send)'}
+          aria-label="Write a message"
+          className="max-h-32 min-h-11 flex-1 resize-none rounded-[20px] border border-hairline bg-canvas px-4 py-2.5 font-sans text-[15px] text-ink placeholder:text-ink-muted-48 focus-visible:border-primary focus-visible:outline-none disabled:opacity-50"
         />
 
         <Button
           type="button"
           onClick={() => void handleSend()}
-          disabled={disabled || (!text.trim() && !pendingFile) || isSending}
+          disabled={disabled || (!text.trim() && !draft) || sendPhase !== null}
           className="mb-0.5 flex-none"
-          aria-label="Kirim pesan"
+          aria-label="Send message"
         >
           <Icon name="send" className="h-4 w-4" />
-          <span className="hidden sm:inline">Kirim</span>
+          <span className="hidden sm:inline">Send</span>
         </Button>
       </div>
     </div>
   );
-}
+});
