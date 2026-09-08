@@ -25,7 +25,7 @@ export function Lightbox({ src, name, onClose }: LightboxProps) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -36,7 +36,7 @@ export function Lightbox({ src, name, onClose }: LightboxProps) {
           href={src}
           download={name}
           onClick={(event) => event.stopPropagation()}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900/80 text-slate-100 hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white bg-canvas text-white hover:bg-mint hover:text-black hover:border-mint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-cyan"
           aria-label="Unduh gambar"
         >
           <Icon name="download" className="h-5 w-5" />
@@ -47,7 +47,7 @@ export function Lightbox({ src, name, onClose }: LightboxProps) {
             event.stopPropagation();
             onClose();
           }}
-          className="bg-slate-900/80 hover:bg-slate-800"
+          className="border border-white bg-canvas hover:border-mint"
         >
           <Icon name="x" className="h-5 w-5" />
         </IconButton>
@@ -56,7 +56,7 @@ export function Lightbox({ src, name, onClose }: LightboxProps) {
         src={src}
         alt={name}
         onClick={(event) => event.stopPropagation()}
-        className="max-h-full max-w-full rounded-lg object-contain shadow-2xl"
+        className="max-h-full max-w-full rounded-[20px] border border-frame object-contain"
       />
     </div>,
     document.body,

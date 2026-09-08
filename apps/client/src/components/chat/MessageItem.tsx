@@ -21,12 +21,16 @@ export function MessageItem({ message, isSelf, onImageClick }: MessageItemProps)
   return (
     <div className={cx('flex flex-col', isSelf ? 'items-end' : 'items-start')}>
       {!isSelf && message.author && (
-        <span className="mb-0.5 px-1 text-xs font-medium text-slate-400">{message.author.username}</span>
+        <span className="mb-1 px-1 font-mono text-[10px] font-medium uppercase tracking-[1.5px] text-muted">
+          {message.author.username}
+        </span>
       )}
       <div
         className={cx(
-          'max-w-[80%] rounded-2xl px-3.5 py-2 text-sm shadow-sm sm:max-w-[65%]',
-          isSelf ? 'rounded-tr-sm bg-sky-600 text-white' : 'rounded-tl-sm bg-slate-800 text-slate-100',
+          'max-w-[80%] rounded-[20px] px-4 py-2.5 font-sans text-sm sm:max-w-[65%]',
+          isSelf
+            ? 'rounded-tr-[4px] bg-mint text-black'
+            : 'rounded-tl-[4px] border border-white/80 bg-canvas text-white',
         )}
       >
         {message.kind === 'text' && (
@@ -39,12 +43,12 @@ export function MessageItem({ message, isSelf, onImageClick }: MessageItemProps)
           <button
             type="button"
             onClick={() => onImageClick(attachment.dataUrl, attachment.name)}
-            className="block overflow-hidden rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+            className="block overflow-hidden rounded-[12px] border border-frame focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-cyan"
           >
             <img
               src={attachment.dataUrl}
               alt={attachment.name}
-              className="max-h-72 max-w-full rounded-lg object-cover"
+              className="max-h-72 max-w-full rounded-[10px] object-cover"
             />
           </button>
         )}
@@ -54,20 +58,24 @@ export function MessageItem({ message, isSelf, onImageClick }: MessageItemProps)
             href={attachment.dataUrl}
             download={attachment.name}
             className={cx(
-              'flex items-center gap-3 rounded-lg px-2 py-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300',
-              isSelf ? 'bg-sky-700/60 hover:bg-sky-700' : 'bg-slate-700/60 hover:bg-slate-700',
+              'flex items-center gap-3 rounded-[14px] px-2.5 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-cyan',
+              isSelf ? 'bg-black/10 hover:bg-black/15' : 'bg-white/5 hover:bg-white/10',
             )}
           >
             <Icon name="file" className="h-6 w-6 flex-none" />
             <span className="min-w-0 flex-1">
               <span className="block truncate">{truncateFilename(attachment.name)}</span>
-              <span className="block text-xs opacity-75">{formatBytes(attachment.size)}</span>
+              <span className="block font-mono text-[10px] uppercase tracking-[1px] opacity-70">
+                {formatBytes(attachment.size)}
+              </span>
             </span>
             <Icon name="download" className="h-4 w-4 flex-none" />
           </a>
         )}
       </div>
-      <span className="mt-0.5 px-1 text-[11px] text-slate-500">{formatTime(message.sentAt)}</span>
+      <span className="mt-1 px-1 font-mono text-[10px] uppercase tracking-[1.5px] text-muted">
+        {formatTime(message.sentAt)}
+      </span>
     </div>
   );
 }

@@ -11,9 +11,10 @@ export function IconButton({ className, label, ...props }: IconButtonProps) {
       aria-label={label}
       title={label}
       className={cx(
-        'inline-flex h-9 w-9 flex-none items-center justify-center rounded-lg text-slate-300 transition-colors hover:bg-slate-800 hover:text-white',
-        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400',
-        'disabled:cursor-not-allowed disabled:opacity-50',
+        'inline-flex h-9 w-9 flex-none items-center justify-center rounded-full text-white/70 transition-colors',
+        'hover:bg-white/10 hover:text-mint',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-cyan',
+        'disabled:cursor-not-allowed disabled:opacity-40',
         className,
       )}
       {...props}

@@ -78,93 +78,100 @@ function RoomPageInner() {
   const inputDisabled = status !== 'online' || phase !== 'joined';
 
   return (
-    <div className="flex h-screen flex-col bg-slate-950 text-slate-100">
+    <div className="flex h-screen flex-col bg-canvas text-white">
       <ConnectionBanner status={status} />
 
-      <header className="flex flex-none items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
-        <div className="flex min-w-0 items-center gap-1.5">
-          <h1 className="truncate text-sm font-semibold text-slate-200">
-            Room <span className="font-mono text-sky-400">{session.roomId}</span>
-          </h1>
-          <IconButton label="Salin Room ID" onClick={handleCopyRoomId}>
-            <Icon name={copyFeedback ? 'check' : 'copy'} className="h-4 w-4" />
-          </IconButton>
+      {/* Room shell: full width on mobile, pinned to a centered 50%-width
+          column from the md breakpoint up — a narrower reading column reads
+          better than an edge-to-edge chat on wide desktop viewports. */}
+      <div className="mx-auto flex min-h-0 w-full flex-1 flex-col md:w-1/2 md:min-w-[420px] md:border-x md:border-frame">
+        <header className="flex flex-none items-center justify-between gap-3 border-b border-frame px-4 py-3">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <h1 className="truncate font-mono text-xs font-semibold uppercase tracking-[1.5px] text-white">
+              Room <span className="text-mint">{session.roomId}</span>
+            </h1>
+            <IconButton label="Salin Room ID" onClick={handleCopyRoomId}>
+              <Icon name={copyFeedback ? 'check' : 'copy'} className="h-4 w-4" />
+            </IconButton>
+          </div>
+          <div className="flex flex-none items-center gap-2">
+            <IconButton label="Buka daftar user" className="md:hidden" onClick={() => setDrawerOpen(true)}>
+              <Icon name="users" className="h-5 w-5" />
+            </IconButton>
+            <Button variant="secondary" onClick={handleLeave}>
+              <Icon name="logout" className="h-4 w-4" />
+              Keluar
+            </Button>
+          </div>
+        </header>
+
+        <div className="flex min-h-0 flex-1">
+          <div
+            className="flex min-w-0 flex-1 flex-col"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              event.preventDefault();
+              const file = event.dataTransfer.files?.[0];
+              if (file) messageInputRef.current?.addFile(file);
+            }}
+          >
+            {phase === 'joining' && (
+              <div className="flex flex-1 items-center justify-center font-mono text-xs uppercase tracking-[1.5px] text-muted">
+                Bergabung ke room...
+              </div>
+            )}
+
+            {phase === 'failed' && (
+              <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
+                <p className="font-sans text-sm text-white">{joinError ?? 'Gagal bergabung ke room.'}</p>
+                <Button onClick={handleBackToLanding}>Kembali ke Landing</Button>
+              </div>
+            )}
+
+            {phase === 'joined' && (
+              <>
+                {users.length <= 1 && (
+                  <div className="mx-3 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-[20px] border border-white px-4 py-2.5 font-sans text-sm text-white sm:mx-4">
+                    <span>
+                      Kamu sendirian di sini. Ajak orang lain pakai Room ID{' '}
+                      <span className="font-mono text-mint">{session.roomId}</span>.
+                    </span>
+                    <Button variant="secondary" onClick={handleCopyRoomId} className="flex-none">
+                      <Icon name="copy" className="h-4 w-4" />
+                      {copyFeedback ? 'Tersalin!' : 'Salin'}
+                    </Button>
+                  </div>
+                )}
+                <MessageList
+                  messages={messages}
+                  selfUsername={session.username}
+                  onImageClick={(src, name) => setLightbox({ src, name })}
+                />
+                <TypingIndicator usernames={typingUsernames} />
+                <MessageInput
+                  ref={messageInputRef}
+                  socket={socket}
+                  disabled={inputDisabled}
+                  sendMessage={sendMessage}
+                />
+              </>
+            )}
+          </div>
+
+          <aside className="hidden w-60 flex-none border-l border-frame md:block">
+            <UserList users={users} selfUsername={session.username} />
+          </aside>
         </div>
-        <div className="flex flex-none items-center gap-2">
-          <IconButton label="Buka daftar user" className="md:hidden" onClick={() => setDrawerOpen(true)}>
-            <Icon name="users" className="h-5 w-5" />
-          </IconButton>
-          <Button variant="secondary" onClick={handleLeave}>
-            <Icon name="logout" className="h-4 w-4" />
-            Keluar
-          </Button>
-        </div>
-      </header>
-
-      <div className="flex min-h-0 flex-1">
-        <div
-          className="flex min-w-0 flex-1 flex-col"
-          onDragOver={(event) => event.preventDefault()}
-          onDrop={(event) => {
-            event.preventDefault();
-            const file = event.dataTransfer.files?.[0];
-            if (file) messageInputRef.current?.addFile(file);
-          }}
-        >
-          {phase === 'joining' && (
-            <div className="flex flex-1 items-center justify-center text-sm text-slate-500">
-              Bergabung ke room...
-            </div>
-          )}
-
-          {phase === 'failed' && (
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-              <p className="text-sm text-rose-300">{joinError ?? 'Gagal bergabung ke room.'}</p>
-              <Button onClick={handleBackToLanding}>Kembali ke Landing</Button>
-            </div>
-          )}
-
-          {phase === 'joined' && (
-            <>
-              {users.length <= 1 && (
-                <div className="mx-3 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800 bg-slate-900 px-4 py-2.5 text-sm text-slate-300 sm:mx-4">
-                  <span>
-                    Kamu sendirian di sini. Ajak orang lain pakai Room ID{' '}
-                    <span className="font-mono text-sky-400">{session.roomId}</span>.
-                  </span>
-                  <Button variant="secondary" onClick={handleCopyRoomId} className="flex-none">
-                    <Icon name="copy" className="h-4 w-4" />
-                    {copyFeedback ? 'Tersalin!' : 'Salin'}
-                  </Button>
-                </div>
-              )}
-              <MessageList
-                messages={messages}
-                selfUsername={session.username}
-                onImageClick={(src, name) => setLightbox({ src, name })}
-              />
-              <TypingIndicator usernames={typingUsernames} />
-              <MessageInput
-                ref={messageInputRef}
-                socket={socket}
-                disabled={inputDisabled}
-                sendMessage={sendMessage}
-              />
-            </>
-          )}
-        </div>
-
-        <aside className="hidden w-60 flex-none border-l border-slate-800 md:block">
-          <UserList users={users} selfUsername={session.username} />
-        </aside>
       </div>
 
       {drawerOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
-          <div className="flex-1 bg-black/60" onClick={() => setDrawerOpen(false)} aria-hidden="true" />
-          <div className="w-64 flex-none border-l border-slate-800 bg-slate-950">
+          <div className="flex-1 bg-black/70" onClick={() => setDrawerOpen(false)} aria-hidden="true" />
+          <div className="w-64 flex-none border-l border-frame bg-canvas">
             <div className="flex items-center justify-between px-2 py-2">
-              <span className="px-2 text-xs font-medium uppercase tracking-wide text-slate-500">Peserta</span>
+              <span className="px-2 font-mono text-[10px] font-medium uppercase tracking-[1.5px] text-muted">
+                Peserta
+              </span>
               <IconButton label="Tutup daftar user" onClick={() => setDrawerOpen(false)}>
                 <Icon name="x" className="h-4 w-4" />
               </IconButton>
@@ -188,7 +195,7 @@ function RoomPageInner() {
 
       {showRejoinFailedDialog && (
         <Dialog title="Gagal tersambung kembali" actions={<Button onClick={handleBackToLanding}>Kembali ke Landing</Button>}>
-          {joinError ?? 'Username kamu mungkin sudah dipakai oleh koneksi lama. Silakan bergabung lagi dari landing page.'}
+          Sesi kamu tidak bisa dipulihkan otomatis (mis. username sudah dipakai sesi lama). Silakan kembali ke landing dan masuk lagi.
         </Dialog>
       )}
     </div>

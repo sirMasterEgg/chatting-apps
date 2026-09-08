@@ -84,7 +84,7 @@ export function MessageList({ messages, selfUsername, onImageClick }: MessageLis
         <button
           type="button"
           onClick={scrollToBottom}
-          className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-sky-500 px-4 py-2 text-xs font-medium text-white shadow-lg transition-colors hover:bg-sky-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+          className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-[30px] bg-mint px-4 py-2 font-mono text-[11px] font-semibold uppercase tracking-[1.5px] text-black transition-colors hover:bg-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-cyan"
         >
           <Icon name="arrowDown" className="h-3.5 w-3.5" />
           Pesan baru{newCount > 1 ? ` (${newCount})` : ''}

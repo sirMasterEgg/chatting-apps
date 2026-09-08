@@ -1,1 +1,37 @@
 @import 'tailwindcss';
+
+@theme {
+  /* Canvas & surfaces */
+  --color-canvas: #131313;
+  --color-canvas-alt: #1a1a1a;
+  --color-slate: #2d2d2d;
+  --color-frame: #313131;
+
+  /* Hazard accents */
+  --color-mint: #3cffd0;
+  --color-mint-border: #309875;
+  --color-ultraviolet: #5200ff;
+  --color-purple-rule: #3d00bf;
+
+  /* Semantic */
+  --color-link-blue: #3860be;
+  --color-focus-cyan: #1eaedb;
+  --color-muted: #949494;
+  --color-muted-text: #e9e9e9;
+
+  /* Type */
+  --font-display: 'Anton', Impact, Helvetica, sans-serif;
+  --font-sans: 'Space Grotesk', Helvetica, Arial, sans-serif;
+  --font-mono: 'Space Mono', 'Courier New', Courier, monospace;
+}
+
+body {
+  background: var(--color-canvas);
+  color: #ffffff;
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: var(--color-mint);
+  color: #000000;
+}

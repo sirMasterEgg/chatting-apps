@@ -13,7 +13,7 @@ export function ConnectionBanner({ status }: { status: ConnectionStatus }) {
   return (
     <div
       role="status"
-      className="flex flex-none items-center justify-center gap-2 border-b border-amber-900/50 bg-amber-950/60 px-4 py-1.5 text-xs font-medium text-amber-200"
+      className="flex flex-none items-center justify-center gap-2 border-b border-ultraviolet bg-ultraviolet/20 px-4 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-[1.5px] text-white"
     >
       <Spinner className="h-3.5 w-3.5" />
       <span>{message}</span>
